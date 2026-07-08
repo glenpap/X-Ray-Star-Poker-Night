@@ -307,8 +307,6 @@
   @keyframes confFall{from{transform:translateY(-30px) rotate(0deg)}to{transform:translateY(106vh) rotate(560deg)}}
   .confP{position:absolute;top:-24px;opacity:.95;animation:confFall linear forwards;pointer-events:none}
   @media (prefers-reduced-motion: reduce){.confP{display:none}}
-  #ovBrag{padding:14px 28px;border-radius:30px;font-size:16px;color:#161028;margin-left:10px;
-    background:linear-gradient(135deg,var(--accent),#7de8ff)}
   #toast{
     position:fixed;top:64px;left:50%;transform:translateX(-50%);z-index:70;
     background:#1c1638;border:1px solid var(--accent);color:var(--ink);
@@ -393,7 +391,7 @@
   </div>
 
   <div class="foot">
-    v1.0 fan test · play-money chips only — no real gambling, just bragging rights<br>
+    v1.1 fan test · play-money chips only — no real gambling, just bragging rights<br>
     music &amp; mischief by <a href="https://x-raystarband.net/" target="_blank" rel="noopener">X-Ray Star</a> ·
     <a href="https://youtube.com/playlist?list=PLd1uZNELj91lcc_vY2wqcmCd9OqVxs0-d&si=F27_wgabQNySxqzK" target="_blank" rel="noopener">YouTube</a> ·
     <a href="https://open.spotify.com/artist/7kuG094aXgRmkgIOH9Tpdi" target="_blank" rel="noopener">Spotify</a> ·
@@ -424,7 +422,7 @@
     <button class="act" id="btnCall">Call</button>
     <button class="act" id="btnRaise">Raise</button>
     <button class="act" id="btnNext" style="display:none;background:linear-gradient(135deg,#cfc4ff,#a58bff)">Next Hand</button>
-    <button class="act" id="btnBrag" style="display:none;background:linear-gradient(135deg,#8ff0da,#4de8c2)">📣 Brag</button>
+    
   </div>
   <div id="raiseRow">
     <button class="rop" data-r="min">Min</button>
@@ -459,7 +457,7 @@
   <div id="bjActions"></div>
 </div>
 
-<div id="overlay"><div class="card2"><h2 id="ovTitle"></h2><p id="ovBody"></p><button id="ovBtn">OK</button><button id="ovAlt" style="display:none;padding:14px 24px;border-radius:30px;font-size:15px;margin-left:10px;background:linear-gradient(135deg,#8ff0da,#4de8c2);color:#161028;font-weight:700">Alt</button><button id="ovBrag" style="display:none">📣 Brag</button><button id="ovCancel" style="display:none;padding:14px 28px;border-radius:30px;font-size:16px;margin-left:10px;background:rgba(255,255,255,.15);color:var(--ink)">Cancel</button></div></div>
+<div id="overlay"><div class="card2"><h2 id="ovTitle"></h2><p id="ovBody"></p><button id="ovBtn">OK</button><button id="ovAlt" style="display:none;padding:14px 24px;border-radius:30px;font-size:15px;margin-left:10px;background:linear-gradient(135deg,#8ff0da,#4de8c2);color:#161028;font-weight:700">Alt</button><button id="ovCancel" style="display:none;padding:14px 28px;border-radius:30px;font-size:16px;margin-left:10px;background:rgba(255,255,255,.15);color:var(--ink)">Cancel</button></div></div>
 <div id="toast"></div>
 
 <script>
@@ -865,15 +863,6 @@ function confetti(n,champagne){
   }
   setTimeout(()=>wrap.remove(), 5600);
 }
-/* ---------------- brag: share your glory ---------------- */
-function gameURL(){ return location.origin && location.origin!=='null' ? location.origin+location.pathname : 'https://glenpap.github.io/'; }
-function brag(text){
-  const full=text+' 🃏 Play free: '+gameURL();
-  if(navigator.share){ navigator.share({text:full}).catch(()=>{}); return; }
-  try{ navigator.clipboard.writeText(full); toast('Copied! Paste it anywhere 📣'); }
-  catch(e){ toast(full.slice(0,60)+'…'); }
-}
-let pendingBrag=null;
 /* ---------------- trophies that announce themselves ---------------- */
 const TROPHY_DEFS=[
   {k:'room1', label:'Escaped the Basement',              t:()=>unlockedMax>=1},
@@ -902,8 +891,6 @@ function overlay(title,body,cb,bragText,cancelable,okLabel,altLabel,altCb){
   $('ovTitle').textContent=title; $('ovBody').innerHTML=body;
   $('overlay').classList.add('on');
   $('ovBtn').textContent=okLabel||'OK';
-  $('ovBrag').style.display=bragText?'inline-block':'none';
-  $('ovBrag').onclick=()=>{ if(bragText) brag(bragText); };
   $('ovCancel').style.display=cancelable?'inline-block':'none';
   $('ovCancel').onclick=()=>$('overlay').classList.remove('on');
   $('ovAlt').style.display=altLabel?'inline-block':'none';
@@ -1331,8 +1318,7 @@ async function pokerLoop(myS){
             tourneyWins++; bank+=500; save();
             confetti(90,true); sfx('win');
             checkTrophies();
-            overlay('CHAMPION! 🏆','You took the whole table! The band demands a rematch. +$500 added to your bankroll.<br><br>Tournament record: <b>'+tourneyWins+' won / '+(stats.tLoss||0)+' lost</b>',()=>leaveTable(),
-              'I just won the whole tournament in X-Ray Star: Poker Night! 🏆🍾 Beat the band yourself:');
+            overlay('CHAMPION! 🏆','You took the whole table! The band demands a rematch. +$500 added to your bankroll.<br><br>Tournament record: <b>'+tourneyWins+' won / '+(stats.tLoss||0)+' lost</b>',()=>leaveTable());
           }else{
             stats.tLoss=(stats.tLoss||0)+1; save();
             overlay('Eliminated',''+alive[0].name+' takes the tournament. '+alive[0].name+' will absolutely bring this up at rehearsal.<br><br>Tournament record: <b>'+tourneyWins+' won / '+stats.tLoss+' lost</b>',()=>leaveTable());
@@ -1364,10 +1350,8 @@ async function pokerLoop(myS){
 function waitNext(myS){
   return new Promise(res=>{
     const b=$('btnNext'); b.style.display='block';
-    const bg=$('btnBrag');
-    if(pendingBrag){ bg.style.display='block'; bg.onclick=()=>brag(pendingBrag); }
     ['btnFold','btnCall','btnRaise'].forEach(id=>$(id).style.display='none');
-    b.onclick=()=>{ b.style.display='none'; bg.style.display='none'; pendingBrag=null;
+    b.onclick=()=>{ b.style.display='none';
       ['btnFold','btnCall','btnRaise'].forEach(id=>$(id).style.display='block');
       res(); };
     /* if session dies, resolve harmlessly on next click anyway */
@@ -1376,7 +1360,8 @@ function waitNext(myS){
 
 function inHand(){ return P.filter(p=>p.inHand); }
 let lastBoardLen=0, lastHoleKey='';
-const PLACE=['🥇','🥈','🥉','4th','5th'];
+const PLACE=['1st','2nd','3rd','4th','5th'];
+const PLACE_COL=['#ffd268','#cdd5e6','#d8a06a','#8b93b8','#8b93b8'];
 function renderAll(showdown){
   if(!P.length || !$('nm1')) return;
   /* current standings by chip count */
@@ -1387,7 +1372,7 @@ function renderAll(showdown){
     $('nm'+i).innerHTML=p.name+(i===dealerIdx?' <span class="dbtn">D</span>':'')+
       (i===curSBi?' <span class="dbtn" style="background:#8fd0ff">S</span>':'')+
       (i===curBBi?' <span class="dbtn" style="background:#ff9ad5">B</span>':'');
-    $('chips'+i).textContent=p.busted?'—':(PLACE[place[i]]+' '+money(p.chips));
+    $('chips'+i).innerHTML=p.busted?'—':('<span style="color:'+PLACE_COL[place[i]]+';font-weight:800">'+PLACE[place[i]]+'</span> '+money(p.chips));
     $('bet'+i).textContent=p.busted?'OUT':(p.bet>0?('bet '+money(p.bet)):(p.allin?'ALL IN':''));
     const seat=$('seat'+i);
     seat.classList.toggle('folded', (p.playing&&!p.inHand)||p.busted);
@@ -1434,7 +1419,7 @@ function renderAll(showdown){
   }catch(e){ hint=''; }
   $('myInfo').innerHTML=
     (hint?'<div style="color:var(--gold);font-size:14.5px;margin-bottom:3px">You have: '+hint+'</div>':'')+
-    PLACE[place[0]]+' · Your chips: <b>'+money(me.chips)+'</b>'+
+    '<span style="color:'+PLACE_COL[place[0]]+';font-weight:800">'+PLACE[place[0]]+'</span> · Your chips: <b>'+money(me.chips)+'</b>'+
     (dealerIdx===0?' · <span class="yb">Ⓓ dealer</span>':'')+
     (curSBi===0?' · <span class="yb">small blind</span>':'')+
     (curBBi===0?' · <span class="yb">big blind</span>':'')+
@@ -1472,7 +1457,7 @@ function setMsg(t,gold){ const el=$('msg'); el.textContent=t; el.style.color=gol
 
 async function playHand(myS){
   const {sb,bb}=blinds();
-  deck=newDeck(); board=[]; lastBoardLen=0; lastHoleKey=''; pendingBrag=null; lastBoardLen=0; lastHoleKey='';
+  deck=newDeck(); board=[]; lastBoardLen=0; lastHoleKey=''; lastBoardLen=0; lastHoleKey='';
   P.forEach(p=>{ p.playing=p.chips>0; p.inHand=p.playing; p.hole=null; p.bet=0; p.total=0; p.allin=false; p.acted=false; });
   const seats=P.map((p,i)=>i).filter(i=>P[i].playing);
   if(seats.length<2) return;
@@ -1751,9 +1736,6 @@ async function showdown(myS, earlyWin){
         $('felt').classList.add('bigwin');
         setTimeout(()=>$('felt').classList.remove('bigwin'),3400);
         if(winners.includes(0)) confetti(55);
-      }
-      if(winners.includes(0) && (best[0]>=5 || pot.amt>=stats.bigPot && pot.amt>500)){
-        pendingBrag='I just won '+money(pot.amt)+' with '+handName(best)+' against the band in X-Ray Star: Poker Night!';
       }
       winners.forEach(i=>{
         if(P[i].human){ sfx('win'); P.slice(1).forEach((p,ix)=>{ if(P[ix+1].playing) maybeSay(ix+1,'playerWin',0.5); }); }
