@@ -1,0 +1,1912 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>X-Ray Star: Poker Night</title>
+<meta property="og:title" content="X-Ray Star: Poker Night">
+<meta property="og:description" content="Texas Hold 'em with the band. Play your way from the basement to Vegas — a free game from X-Ray Star.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Alfa+Slab+One&family=Quicksand:wght@500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#f3f0ff;
+    --dim:#b9b2d8;
+    --gold:#ffd268;
+    --felt1:#1d2c4f; --felt2:#101a33;   /* per-venue */
+    --accent:#4de8c2;
+    --danger:#ff7d6b;
+  }
+  *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;user-select:none;-webkit-user-select:none}
+  html,body{width:100%;height:100%;overflow:hidden}
+  body{
+    font-family:'Quicksand',system-ui,sans-serif;color:var(--ink);
+    background:radial-gradient(ellipse at 50% 30%, var(--felt1) 0%, var(--felt2) 75%);
+    font-size:17px;
+    display:flex;flex-direction:column;
+  }
+  button{font-family:'Quicksand',sans-serif;font-weight:700;cursor:pointer;border:none;
+    transition:transform .07s ease, filter .07s ease}
+  button:active{transform:scale(.95);filter:brightness(1.25)}
+  .venue:active{transform:scale(.98);filter:brightness(1.2)}
+
+  /* ============ title screen ============ */
+  #titleScreen{
+    position:fixed;inset:0;z-index:80;display:flex;flex-direction:column;align-items:center;justify-content:center;
+    gap:14px;text-align:center;padding:24px;
+    background:radial-gradient(ellipse at 50% 30%, #1d3a2b 0%, #0c1a12 70%, #060d09 100%);
+    transition:opacity 1.3s ease;
+  }
+  #titleScreen.gone{opacity:0;pointer-events:none}
+  #titleScreen:before{content:'♠';position:absolute;font-size:46vh;color:rgba(255,255,255,.035);top:8%;pointer-events:none}
+  #titleScreen .tband{font-size:13px;letter-spacing:.4em;color:var(--accent);text-transform:uppercase}
+  #titleScreen h1{
+    font-family:'Alfa Slab One',serif;font-size:clamp(56px,15vw,120px);line-height:.95;color:var(--gold);
+    text-shadow:0 4px 0 #7a5a1a, 0 0 44px rgba(255,210,104,.4);
+  }
+  #titleScreen .ttag{font-size:clamp(14px,3.4vw,18px);color:#cfd8c9}
+  #dealMeIn{
+    margin-top:24px;padding:16px 48px;border-radius:40px;font-size:18px;letter-spacing:.1em;
+    color:#161028;background:linear-gradient(135deg,var(--gold),#ffb347);
+    box-shadow:0 0 30px rgba(255,210,104,.45);transition:transform .25s;
+  }
+  #dealMeIn:hover{transform:scale(1.05)}
+  #titleScreen .tfoot{position:absolute;bottom:20px;font-size:12px;color:#7f9184;letter-spacing:.06em}
+  .advisory{
+    margin-top:14px;background:#000;border:2px solid #fff;padding:7px 16px 8px;text-align:center;
+    font-weight:700;letter-spacing:.1em;transform:rotate(-2deg);
+    box-shadow:0 4px 14px rgba(0,0,0,.6);
+  }
+  .advisory div{font-size:13px;color:#fff;line-height:1.35}
+  .advisory .adv2{font-size:10.5px;border-top:1px solid #fff;margin-top:3px;padding-top:3px}
+  #felt::before{
+    content:'✦ X-RAY STAR ✦';position:absolute;left:0;right:0;top:50%;transform:translateY(-50%);
+    text-align:center;font-family:'Alfa Slab One',serif;font-size:clamp(18px,4.5vw,26px);
+    color:rgba(255,210,104,.10);letter-spacing:.3em;pointer-events:none;
+  }
+  .pill{padding:11px 14px;border-radius:24px;background:rgba(255,255,255,.1);color:var(--ink);
+    font-size:14px;border:1px solid rgba(255,255,255,.18)}
+  .pill.sel{background:rgba(255,210,104,.18);border-color:var(--gold);color:var(--gold)}
+  @keyframes feltGlow{0%{box-shadow:0 -6px 22px rgba(0,0,0,.5), inset 0 0 12px rgba(255,210,104,0)}
+    40%{box-shadow:0 -6px 22px rgba(0,0,0,.5), inset 0 0 70px rgba(255,210,104,.3)}
+    100%{box-shadow:0 -6px 22px rgba(0,0,0,.5), inset 0 6px 18px rgba(255,255,255,.06)}}
+  #felt.bigwin{animation:feltGlow 3.2s ease-out}
+  @media (prefers-reduced-motion: reduce){#felt.bigwin{animation:none}}
+  #handHint{font-size:14.5px;color:var(--gold);min-height:20px;margin-top:2px}
+  #salFace svg{width:86px;filter:drop-shadow(0 4px 8px rgba(0,0,0,.5))}
+
+
+  /* ============ card deck styles ============ */
+  .mini.face{background:#fdfaf2}
+  .mini.face.red{color:#c2263a}.mini.face.blk{color:#1c1f3a}
+  .deck-midnight .card,.deck-midnight .mini.face{background:#171d3a;box-shadow:0 3px 8px rgba(0,0,0,.55)}
+  .deck-midnight .card.blk,.deck-midnight .mini.face.blk{color:#e8eeff}
+  .deck-midnight .card.red,.deck-midnight .mini.face.red{color:#ff8f9a}
+  .deck-midnight .card.back,.deck-midnight .mini.back{background:linear-gradient(135deg,#0d3a3c,#155e5a);color:#7de8ff;border-color:rgba(125,232,255,.45)}
+  .deck-stardust .card,.deck-stardust .mini.face{background:#fff6dd}
+  .deck-stardust .card.blk,.deck-stardust .mini.face.blk{color:#3a2c14}
+  .deck-stardust .card.red,.deck-stardust .mini.face.red{color:#b8322a}
+  .deck-stardust .card.back,.deck-stardust .mini.back{background:linear-gradient(135deg,#7a4a12,#c9a24d);color:#fff6dd;border-color:rgba(255,240,200,.5)}
+  .deck-bigprint .card .r{font-size:29px}
+  .deck-bigprint .card .s{font-size:24px}
+  .deck-bigprint #myCards .card .r{font-size:36px}
+  .deck-bigprint #myCards .card .s{font-size:29px}
+  .deck-bigprint .mini{font-size:15px;font-weight:800}
+  /* ============ character expressions ============ */
+  .mHappy,.mSad{opacity:0;transition:opacity .25s}
+  .mBase{transition:opacity .25s}
+  .charSpot.happy .mHappy{opacity:1}
+  .charSpot.happy .mBase{opacity:0}
+  .charSpot.sad .mSad{opacity:1}
+  .charSpot.sad .mBase{opacity:0}
+  .charSpot.happy .charSVG{animation:hop .6s ease}
+  @keyframes hop{0%{transform:translateY(0)}35%{transform:translateY(-7px)}70%{transform:translateY(1px)}100%{transform:translateY(0)}}
+  /* ============ gentle room life (slow, photosafe) ============ */
+  .swayBulb{animation:swayB 7s ease-in-out infinite;transform-origin:top center}
+  @keyframes swayB{0%,100%{transform:rotate(-2deg)}50%{transform:rotate(2deg)}}
+  .neonPulse{animation:neonP 4.8s ease-in-out infinite}
+  @keyframes neonP{0%,100%{opacity:.55}50%{opacity:.95}}
+  @media (prefers-reduced-motion: reduce){.swayBulb,.neonPulse,.charSpot.happy .charSVG{animation:none}}
+  #hdr{
+    display:flex;align-items:center;justify-content:space-between;
+    padding:10px 14px;gap:10px;flex:0 0 auto;
+    background:rgba(0,0,0,.28);
+  }
+  #venueName{font-family:'Alfa Slab One',serif;font-size:17px;letter-spacing:.03em;color:var(--gold);
+    white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  #bankHdr{font-size:16px;font-weight:700;color:var(--accent);white-space:nowrap}
+  .hbtn{width:40px;height:40px;border-radius:10px;background:rgba(255,255,255,.1);color:var(--ink);font-size:17px;flex:0 0 auto}
+  .hbtn.off{opacity:.4}
+
+  /* ============ screens ============ */
+  .screen{flex:1 1 auto;display:none;flex-direction:column;overflow:hidden;position:relative}
+  .screen.on{display:flex}
+
+  /* ============ lobby ============ */
+  #lobby{overflow-y:auto;padding:18px 16px 30px;align-items:center}
+  #lobby h1{font-family:'Alfa Slab One',serif;font-size:clamp(34px,9vw,54px);line-height:1.05;text-align:center;
+    color:var(--ink);text-shadow:0 0 26px rgba(255,210,104,.35);margin-top:8px}
+  #lobby .sub{color:var(--dim);text-align:center;margin:6px 0 4px;font-size:16px}
+  #lobby .bank{color:var(--accent);font-size:20px;font-weight:700;text-align:center;margin-bottom:16px}
+  .lobbySec{width:100%;max-width:480px;margin-bottom:18px}
+  .lobbySec h3{font-size:14px;letter-spacing:.18em;text-transform:uppercase;color:var(--dim);margin:12px 0 8px}
+  .venue{
+    display:flex;align-items:center;gap:12px;width:100%;
+    background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);
+    border-radius:14px;padding:13px 14px;margin-bottom:9px;color:var(--ink);text-align:left;
+  }
+  .venue .vName{font-weight:700;font-size:17px}
+  .venue .vSub{font-size:13.5px;color:var(--dim);margin-top:2px}
+  .venue .vGo{margin-left:auto;font-size:22px;color:var(--gold)}
+  .venue.locked{opacity:.45}
+  .venue.wild{border-color:rgba(77,232,194,.45)}
+  .bigBtn{
+    display:block;width:100%;padding:15px;border-radius:14px;font-size:17px;letter-spacing:.05em;
+    color:#161028;background:linear-gradient(135deg,var(--gold),#ffb347);margin-bottom:10px;
+  }
+  .bigBtn.alt{background:linear-gradient(135deg,var(--accent),#7de8ff)}
+  #lobby .foot{margin-top:10px;font-size:13px;color:var(--dim);text-align:center;line-height:1.6}
+  #lobby .foot a{color:var(--accent);text-decoration:none}
+
+  /* ============ the room scene ============ */
+  #room{flex:1 1 auto;position:relative;display:flex;flex-direction:column;justify-content:flex-end;overflow:hidden;min-height:0}
+  #decor{position:absolute;inset:0;pointer-events:none}
+  #roomSign{
+    position:absolute;top:16px;left:50%;transform:translateX(-50%);z-index:3;
+    font-family:'Alfa Slab One',serif;font-size:15px;letter-spacing:.12em;color:var(--gold);
+    text-shadow:0 0 12px rgba(255,210,104,.8),0 0 30px rgba(255,180,70,.5);white-space:nowrap;
+  }
+  #charRow{position:relative;z-index:2;display:flex;justify-content:space-around;align-items:flex-end;padding:56px 4px 0;max-width:760px;margin:0 auto;width:100%}
+  .charSpot{width:24%;max-width:150px;text-align:center;position:relative}
+  .charSVG{width:clamp(74px,19vw,132px);height:auto;display:block;margin:0 auto -4px;
+    animation:bob 3.6s ease-in-out infinite alternate;filter:drop-shadow(0 4px 8px rgba(0,0,0,.5))}
+  .charSpot:nth-child(2) .charSVG{animation-delay:.9s}
+  .charSpot:nth-child(3) .charSVG{animation-delay:1.7s}
+  .charSpot:nth-child(4) .charSVG{animation-delay:2.5s}
+  @keyframes bob{from{transform:translateY(0)}to{transform:translateY(4px)}}
+  @media (prefers-reduced-motion: reduce){.charSVG{animation:none}}
+  .charSpot.turn .charSVG{filter:drop-shadow(0 0 14px rgba(255,210,104,.9))}
+  .charSpot.folded{opacity:.4;filter:grayscale(.7)}
+  .plate{background:rgba(0,0,0,.45);border-radius:10px;padding:4px 4px 5px;backdrop-filter:blur(2px)}
+  .dbtn{display:inline-block;background:var(--gold);color:#161028;border-radius:50%;
+    width:16px;height:16px;font-size:11px;line-height:16px;margin-left:4px;font-weight:700;vertical-align:1px}
+  #room::after{content:'';position:absolute;inset:0;pointer-events:none;z-index:4;
+    box-shadow:inset 0 -30px 60px rgba(0,0,0,.35), inset 0 0 110px rgba(0,0,0,.3)}
+  #felt{
+    position:relative;z-index:2;margin:6px auto 0;padding:12px 8px 10px;text-align:center;width:100%;max-width:760px;
+    background:radial-gradient(ellipse at 50% -20%, var(--felt1), var(--felt2));
+    border-radius:50% 50% 0 0 / 34px 34px 0 0;
+    border-top:7px solid #6e4a26;
+    box-shadow:0 -6px 22px rgba(0,0,0,.5), inset 0 6px 18px rgba(255,255,255,.06);
+    min-height:112px;
+  }
+  #felt #community{justify-content:center}
+  .chips3{display:inline-block;width:24px;height:14px;vertical-align:-2px;
+    background-image:radial-gradient(circle at 5px 9px,#ff8f6b 4px,transparent 5px),
+      radial-gradient(circle at 12px 6px,#4de8c2 4px,transparent 5px),
+      radial-gradient(circle at 19px 9px,#ffd268 4px,transparent 5px)}
+  @keyframes dealIn{from{opacity:0;transform:translateY(-16px)}to{opacity:1;transform:translateY(0)}}
+  .dealIn{animation:dealIn .4s ease-out}
+  @media (prefers-reduced-motion: reduce){.dealIn{animation:none}}
+
+  #seats{display:flex;justify-content:space-around;padding:10px 6px 2px;flex:0 0 auto}
+  .seat{width:24%;max-width:120px;text-align:center;position:relative;min-height:118px}
+  .avatar{
+    width:52px;height:52px;border-radius:50%;margin:0 auto 3px;
+    display:flex;align-items:center;justify-content:center;
+    font-family:'Alfa Slab One',serif;font-size:21px;color:#161028;
+    border:3px solid rgba(255,255,255,.5);
+  }
+  .seat.turn .avatar{border-color:var(--gold);box-shadow:0 0 16px rgba(255,210,104,.7)}
+  .seat.folded{opacity:.4}
+  .sName{font-size:14px;font-weight:700}
+  .sChips{font-size:13.5px;color:var(--accent)}
+  .sBet{font-size:13px;color:var(--gold);min-height:17px}
+  .miniCards{display:flex;justify-content:center;gap:3px;margin-top:3px;min-height:38px}
+  .mini{width:26px;height:37px;border-radius:4px;font-size:13px;font-weight:700;
+    display:flex;align-items:center;justify-content:center}
+  .bubble{
+    position:absolute;left:50%;transform:translateX(-50%);bottom:calc(100% + 8px);z-index:6;
+    width:min(168px,44vw);background:#fdfaf2;color:#2a2140;border-radius:11px;padding:8px 10px;
+    font-size:13.5px;font-weight:500;line-height:1.35;opacity:0;transition:opacity .4s;
+    pointer-events:none;box-shadow:0 4px 16px rgba(0,0,0,.45);
+  }
+  .bubble:after{content:'';position:absolute;top:100%;left:50%;transform:translateX(-50%);
+    border:8px solid transparent;border-top-color:#fdfaf2}
+  .charSpot:first-child .bubble{left:2px;transform:none}
+  .charSpot:first-child .bubble:after{left:34px}
+  .charSpot:last-child .bubble{left:auto;right:2px;transform:none}
+  .charSpot:last-child .bubble:after{left:auto;right:26px;transform:none}
+  #bjBubble{bottom:auto !important}
+  #bjBubble:after{top:auto;bottom:100%;border-top-color:transparent;border-bottom-color:#fdfaf2}
+  .bubble.show{opacity:1}
+
+  #mid{flex:1 1 auto;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;padding:4px}
+  #community{display:flex;gap:6px;min-height:76px}
+  #potLine{font-size:16px;color:var(--gold);font-weight:700}
+  #msg{font-size:15px;color:var(--ink);text-align:center;min-height:40px;padding:4px 14px 0;line-height:1.4;width:100%;max-width:760px;margin:0 auto}
+
+  .card{
+    width:52px;height:74px;border-radius:8px;background:#fdfaf2;
+    display:flex;flex-direction:column;align-items:center;justify-content:center;
+    font-weight:700;box-shadow:0 3px 8px rgba(0,0,0,.4);
+  }
+  .card .r{font-size:24px;line-height:1}
+  .card .s{font-size:20px;line-height:1}
+  .card.red{color:#c2263a} .card.blk{color:#1c1f3a}
+  .card.back,.mini.back{
+    background:linear-gradient(135deg,#2a2059,#4b2d7a);
+    color:var(--gold);font-size:20px;border:2px solid rgba(255,210,104,.4);
+  }
+  .card.win{outline:3px solid var(--gold);box-shadow:0 0 18px rgba(255,210,104,.8)}
+
+  #me{flex:0 0 auto;padding:4px 12px 10px;text-align:center;width:100%;max-width:760px;margin:0 auto}
+  #myCards{display:flex;justify-content:center;gap:8px;margin-bottom:6px}
+  #myCards .card{width:64px;height:90px}
+  #myCards .card .r{font-size:30px} #myCards .card .s{font-size:25px}
+  #myInfo{font-size:16px;margin-bottom:8px}
+  #myInfo b{color:var(--accent)}
+  #myInfo .yb{color:var(--gold)}
+
+  #actions{display:flex;gap:8px;justify-content:center;padding:0 12px 14px;flex-wrap:wrap;width:100%;max-width:760px;margin:0 auto}
+  .act{
+    flex:1 1 0;min-width:92px;max-width:170px;padding:15px 6px;border-radius:13px;
+    font-size:16.5px;letter-spacing:.03em;color:#161028;
+  }
+  #btnFold{background:linear-gradient(135deg,#ff9d8a,var(--danger))}
+  #btnCall{background:linear-gradient(135deg,#8ff0da,var(--accent))}
+  #btnRaise{background:linear-gradient(135deg,var(--gold),#ffb347)}
+  .act:disabled{opacity:.35}
+  #raiseRow{display:none;gap:8px;justify-content:center;padding:0 12px 14px;flex-wrap:wrap}
+  #raiseRow.on{display:flex}
+  .rop{padding:13px 14px;border-radius:12px;background:rgba(255,255,255,.14);color:var(--ink);font-size:15.5px}
+
+  /* ============ blackjack ============ */
+  #bjDealer,#bjMe{text-align:center;padding:8px}
+  #bjDealer .lbl,#bjMe .lbl{font-size:14px;color:var(--dim);letter-spacing:.12em;text-transform:uppercase;margin-bottom:5px}
+  #bjDealerCards,#bjMyCards{display:flex;justify-content:center;gap:7px;min-height:78px;flex-wrap:wrap}
+  #bjMid{flex:1 1 auto;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px}
+  #bjMsg{font-size:16px;text-align:center;min-height:44px;padding:0 16px;line-height:1.45}
+  #bjBubbleWrap{position:relative;height:0;width:100%}
+  #bjActions{display:flex;gap:18px;justify-content:center;padding:0 12px 16px;flex-wrap:wrap}
+  #bjVal,#bjDealerVal{font-size:15px;color:var(--gold);font-weight:700;min-height:20px;margin-top:4px}
+
+  /* ============ overlay ============ */
+  #overlay{
+    position:fixed;inset:0;z-index:60;display:none;align-items:center;justify-content:center;
+    background:rgba(5,5,14,.82);padding:22px;
+  }
+  #overlay.on{display:flex}
+  #overlay .card2{
+    width:min(92vw,420px);background:#1c1638;border:1px solid rgba(255,210,104,.4);
+    border-radius:18px;padding:28px 24px;text-align:center;
+  }
+  #overlay h2{font-family:'Alfa Slab One',serif;font-size:27px;color:var(--gold);margin-bottom:10px}
+  #overlay p{font-size:16px;line-height:1.55;color:var(--ink);margin-bottom:20px}
+  #ovBtn{padding:14px 40px;border-radius:30px;font-size:16px;color:#161028;
+    background:linear-gradient(135deg,var(--gold),#ffb347)}
+
+  @keyframes confFall{from{transform:translateY(-30px) rotate(0deg)}to{transform:translateY(106vh) rotate(560deg)}}
+  .confP{position:absolute;top:-24px;opacity:.95;animation:confFall linear forwards;pointer-events:none}
+  @media (prefers-reduced-motion: reduce){.confP{display:none}}
+  #ovBrag{padding:14px 28px;border-radius:30px;font-size:16px;color:#161028;margin-left:10px;
+    background:linear-gradient(135deg,var(--accent),#7de8ff)}
+  #toast{
+    position:fixed;top:64px;left:50%;transform:translateX(-50%);z-index:70;
+    background:#1c1638;border:1px solid var(--accent);color:var(--ink);
+    padding:12px 20px;border-radius:30px;font-size:15px;font-weight:700;
+    opacity:0;transition:opacity .5s;pointer-events:none;white-space:nowrap;
+  }
+  #toast.show{opacity:1}
+  @media (max-height:640px){
+    #myCards .card{width:54px;height:76px}
+    .avatar{width:44px;height:44px;font-size:18px}
+  }
+</style>
+</head>
+<body>
+
+<div id="titleScreen">
+  <div class="tband">X - R A Y &nbsp; S T A R &nbsp; presents</div>
+  <h1>POKER<br>NIGHT</h1>
+  <div class="ttag">Texas Hold 'em with the band · basement to Vegas</div>
+  <div class="advisory"><div>PARENTAL ADVISORY</div><div class="adv2">EXPLICIT BAND CONTENT</div></div>
+  <button id="dealMeIn">♠ &nbsp;Deal Me In</button>
+  <div class="tfoot">play-money only · salty band language · music &amp; mischief by X-Ray Star</div>
+</div>
+
+<div id="hdr">
+  <button id="backBtn" class="hbtn" style="display:none">←</button>
+  <div id="venueName">X-Ray Star: Poker Night</div>
+  <div id="bankHdr"></div>
+  <button id="voiceBtn" class="hbtn" title="voices on / off">🗣</button>
+  <button id="muteBtn" class="hbtn">♪</button>
+</div>
+
+<!-- ============ LOBBY ============ -->
+<div id="lobby" class="screen on">
+  <h1>POKER<br>NIGHT</h1>
+  <div class="sub">Texas Hold 'em with the band — basement to Vegas</div>
+  <div class="bank">Bankroll: $<span id="bankLobby">0</span></div>
+
+  <div class="lobbySec">
+    <button class="bigBtn" id="tourneyBtn">♠ &nbsp;Tournament — winner takes it all</button>
+    <div style="font-size:13.5px;color:var(--dim);text-align:center;margin-top:-4px;margin-bottom:6px">
+      Everyone starts even, blinds rise, last one standing. Win it: <b style="color:var(--gold)">+$500</b> to your bankroll.</div>
+  </div>
+
+  <div class="lobbySec">
+    <h3>Change of Pace</h3>
+    <button class="venue wild" id="bjBtn">
+      <div><div class="vName">♦ The Wild Card Room</div>
+      <div class="vSub">Blackjack on the house's dime \u2014 separate $2,000 stake, always ready.</div></div>
+      <div class="vGo">→</div>
+    </button>
+  </div>
+
+
+  <div class="lobbySec">
+    <h3>Table Settings</h3>
+    <div id="moodRow" style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px">
+      <button class="pill" data-d="0">😊 Friendly Game</button>
+      <button class="pill" data-d="1">🎲 House Rules</button>
+      <button class="pill" data-d="2">🔥 Serious Business</button>
+    </div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap">
+      <button class="pill" id="helperBtn"></button>
+      <button class="pill" id="deckBtn"></button>
+      <button class="pill" id="trophyBtn">🏆 Your Story</button>
+      <button class="pill" id="resetBtn">🔄 Start Fresh</button>
+    </div>
+  </div>
+
+  <div class="lobbySec">
+    <h3>Casual Tables — pick your room</h3>
+    <div id="venueList"></div>
+  </div>
+
+  <div class="lobbySec">
+    <h3>More from X-Ray Star</h3>
+    <a class="venue wild" style="text-decoration:none" href="https://glenpap.github.io/XRS-Match-V7/" target="_blank" rel="noopener">
+      <div><div class="vName">🎮 Match to Stardom</div>
+      <div class="vSub">Our match-3 game — rise from the basement to the big stage.</div></div>
+      <div class="vGo">→</div>
+    </a>
+  </div>
+
+  <div class="foot">
+    v1.0 fan test · play-money chips only — no real gambling, just bragging rights<br>
+    music &amp; mischief by <a href="https://x-raystarband.net/" target="_blank" rel="noopener">X-Ray Star</a> ·
+    <a href="https://youtube.com/playlist?list=PLd1uZNELj91lcc_vY2wqcmCd9OqVxs0-d&si=F27_wgabQNySxqzK" target="_blank" rel="noopener">YouTube</a> ·
+    <a href="https://open.spotify.com/artist/7kuG094aXgRmkgIOH9Tpdi" target="_blank" rel="noopener">Spotify</a> ·
+    <a href="https://www.facebook.com/XRayStarband" target="_blank" rel="noopener">Facebook</a> ·
+    <a href="https://www.redbubble.com/shop/ap/172252421" target="_blank" rel="noopener">Shop</a>
+  </div>
+</div>
+
+<!-- ============ POKER ============ -->
+<div id="poker" class="screen">
+  <div id="room">
+    <div id="decor"></div>
+    <div id="roomSign"></div>
+    <div id="charRow"></div>
+    <div id="felt">
+      <div id="community"></div>
+      <div id="potLine"></div>
+    </div>
+  </div>
+  <div id="msg"></div>
+  <div id="me">
+    <div id="myCards"></div>
+    <div id="handHint"></div>
+    <div id="myInfo"></div>
+  </div>
+  <div id="actions">
+    <button class="act" id="btnFold">Fold</button>
+    <button class="act" id="btnCall">Call</button>
+    <button class="act" id="btnRaise">Raise</button>
+    <button class="act" id="btnNext" style="display:none;background:linear-gradient(135deg,#cfc4ff,#a58bff)">Next Hand</button>
+    <button class="act" id="btnBrag" style="display:none;background:linear-gradient(135deg,#8ff0da,#4de8c2)">📣 Brag</button>
+  </div>
+  <div id="raiseRow">
+    <button class="rop" data-r="min">Min</button>
+    <button class="rop" data-r="half">½ Pot</button>
+    <button class="rop" data-r="pot">Pot</button>
+    <button class="rop" data-r="allin">All-In</button>
+    <button class="rop" data-r="x">✕</button>
+  </div>
+</div>
+
+<!-- ============ BLACKJACK ============ -->
+<div id="blackjack" class="screen">
+  <div id="bjDealer">
+    <div id="salFace"></div>
+    <div class="lbl">Sal — the house</div>
+    <div id="bjDealerCards"></div>
+    <div id="bjDealerVal"></div>
+    <div id="bjBubbleWrap"><div class="bubble" id="bjBubble" style="width:210px;top:6px"></div></div>
+  </div>
+  <div id="bjMid">
+    <div id="bjMsg"></div>
+  </div>
+  <div id="bjMe">
+    <div class="lbl">Your hand</div>
+    <div id="bjMyCards"></div>
+    <div id="bjVal"></div>
+  </div>
+  <div id="bjActions"></div>
+</div>
+
+<div id="overlay"><div class="card2"><h2 id="ovTitle"></h2><p id="ovBody"></p><button id="ovBtn">OK</button><button id="ovAlt" style="display:none;padding:14px 24px;border-radius:30px;font-size:15px;margin-left:10px;background:linear-gradient(135deg,#8ff0da,#4de8c2);color:#161028;font-weight:700">Alt</button><button id="ovBrag" style="display:none">📣 Brag</button><button id="ovCancel" style="display:none;padding:14px 28px;border-radius:30px;font-size:16px;margin-left:10px;background:rgba(255,255,255,.15);color:var(--ink)">Cancel</button></div></div>
+<div id="toast"></div>
+
+<script>
+'use strict';
+/* ==========================================================
+   X-RAY STAR: POKER NIGHT
+   Texas Hold 'em vs the band + Blackjack room
+   Single file · play-money only · photosensitivity-safe
+   ========================================================== */
+
+const $=id=>document.getElementById(id);
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+const money=n=>'$'+n.toLocaleString();
+
+/* ---------------- audio (soft lounge pads + card/chip sfx) ---------------- */
+/* each room has its own musical mood */
+const CHSETS={
+  basement:[[110,164.81,220],[82.41,123.47,164.81],[87.31,130.81,174.61],[98,146.83,196]],
+  lounge:[[110,130.81,164.81,196],[87.31,110,146.83,174.61],[116.54,146.83,174.61,220],[98,123.47,146.83,185]],
+  club:[[130.81,164.81,196,246.94],[110,138.59,164.81,207.65],[146.83,185,220,277.18],[123.47,155.56,185,233.08]],
+  ballroom:[[130.81,164.81,196,246.94,329.63],[110,130.81,164.81,220,261.63],[87.31,130.81,164.81,220,261.63],[98,146.83,185,246.94]],
+  vegas:[[110,138.59,164.81,196],[146.83,174.61,220,261.63],[98,123.47,146.83,174.61],[130.81,164.81,196,233.08]],
+  wild:[[110,146.83,174.61],[98,130.81,164.81],[87.31,116.54,146.83],[123.47,155.56,196]]
+};
+let curSet='basement';
+let AC=null,master=null,muted=false;
+function initAudio(){
+  if(AC) return;
+  try{
+    AC=new (window.AudioContext||window.webkitAudioContext)();
+    master=AC.createGain(); master.gain.value=0.7; master.connect(AC.destination);
+    let ci=0;
+    function pad(){
+      if(muted||!AC) return;
+      const list=CHSETS[curSet]||CHSETS.basement;
+      const now=AC.currentTime,dur=13;
+      list[ci++%list.length].forEach(f=>{
+        const o=AC.createOscillator();o.type='sine';o.frequency.value=f;
+        const g=AC.createGain();g.gain.value=0;
+        g.gain.linearRampToValueAtTime(0.018,now+4);
+        g.gain.setValueAtTime(0.018,now+dur-5);
+        g.gain.linearRampToValueAtTime(0,now+dur);
+        o.connect(g);g.connect(master);o.start(now);o.stop(now+dur+0.1);
+      });
+    }
+    pad();setInterval(pad,11500);
+  }catch(e){}
+}
+function sfx(kind){
+  if(!AC||muted) return;
+  const now=AC.currentTime;
+  if(kind==='card'){
+    const b=AC.createBuffer(1,2400,AC.sampleRate),d=b.getChannelData(0);
+    for(let i=0;i<2400;i++)d[i]=(Math.random()*2-1)*(1-i/2400);
+    const s=AC.createBufferSource();s.buffer=b;
+    const f=AC.createBiquadFilter();f.type='highpass';f.frequency.value=1400;
+    const g=AC.createGain();g.gain.value=0.12;
+    s.connect(f);f.connect(g);g.connect(master);s.start(now);
+  }else if(kind==='chip'){
+    [1100,1550].forEach((fr,i)=>{
+      const o=AC.createOscillator();o.type='sine';o.frequency.value=fr+Math.random()*80;
+      const g=AC.createGain();g.gain.setValueAtTime(0.09,now+i*0.05);
+      g.gain.exponentialRampToValueAtTime(0.001,now+i*0.05+0.14);
+      o.connect(g);g.connect(master);o.start(now+i*0.05);o.stop(now+i*0.05+0.16);
+    });
+  }else if(kind==='tick'){
+    const o=AC.createOscillator();o.type='sine';o.frequency.value=1250;
+    const g=AC.createGain();g.gain.setValueAtTime(0.06,now);
+    g.gain.exponentialRampToValueAtTime(0.001,now+0.07);
+    o.connect(g);g.connect(master);o.start(now);o.stop(now+0.08);
+  }else if(kind==='turn'){
+    [660,880].forEach((fr,i)=>{
+      const o=AC.createOscillator();o.type='sine';o.frequency.value=fr;
+      const g=AC.createGain();g.gain.setValueAtTime(0,now+i*0.09);
+      g.gain.linearRampToValueAtTime(0.05,now+i*0.09+0.02);
+      g.gain.exponentialRampToValueAtTime(0.001,now+i*0.09+0.3);
+      o.connect(g);g.connect(master);o.start(now+i*0.09);o.stop(now+i*0.09+0.35);
+    });
+  }else if(kind==='win'){
+    [330,415,494,659].forEach((fr,i)=>{
+      const o=AC.createOscillator();o.type='triangle';o.frequency.value=fr;
+      const g=AC.createGain();g.gain.setValueAtTime(0,now+i*0.11);
+      g.gain.linearRampToValueAtTime(0.11,now+i*0.11+0.02);
+      g.gain.exponentialRampToValueAtTime(0.001,now+i*0.11+0.9);
+      o.connect(g);g.connect(master);o.start(now+i*0.11);o.stop(now+i*0.11+1);
+    });
+  }
+}
+
+/* ---------------- cards ---------------- */
+const SUITS=['♠','♥','♦','♣'];
+const RSTR={2:'2',3:'3',4:'4',5:'5',6:'6',7:'7',8:'8',9:'9',10:'10',11:'J',12:'Q',13:'K',14:'A'};
+const RWORD={2:'Two',3:'Three',4:'Four',5:'Five',6:'Six',7:'Seven',8:'Eight',9:'Nine',10:'Ten',11:'Jack',12:'Queen',13:'King',14:'Ace'};
+function newDeck(n){
+  const d=[];
+  for(let k=0;k<(n||1);k++)
+    for(const s of SUITS) for(let r=2;r<=14;r++) d.push({r,s});
+  for(let i=d.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[d[i],d[j]]=[d[j],d[i]];}
+  return d;
+}
+function cardHTML(c,big){
+  const red=(c.s==='♥'||c.s==='♦');
+  return '<div class="card '+(red?'red':'blk')+'"><div class="r">'+RSTR[c.r]+'</div><div class="s">'+c.s+'</div></div>';
+}
+const CARD_BACK='<div class="card back">★</div>';
+
+/*LOGIC-START*/
+/* ---------------- hand evaluator (best 5 of 7) ---------------- */
+function rank5(cs){
+  const rs=cs.map(c=>c.r).sort((a,b)=>b-a);
+  const flush=cs.every(c=>c.s===cs[0].s);
+  const cnt={}; rs.forEach(r=>cnt[r]=(cnt[r]||0)+1);
+  const groups=Object.keys(cnt).map(Number).sort((a,b)=> cnt[b]-cnt[a] || b-a);
+  let straightHi=0;
+  const uniq=[...new Set(rs)];
+  if(uniq.length===5){
+    if(uniq[0]-uniq[4]===4) straightHi=uniq[0];
+    else if(uniq[0]===14&&uniq[1]===5&&uniq[4]===2) straightHi=5;   // wheel
+  }
+  const c0=cnt[groups[0]], c1=groups[1]!==undefined?cnt[groups[1]]:0;
+  if(flush&&straightHi) return [8,straightHi];
+  if(c0===4)            return [7,groups[0],groups[1]];
+  if(c0===3&&c1===2)    return [6,groups[0],groups[1]];
+  if(flush)             return [5,...rs];
+  if(straightHi)        return [4,straightHi];
+  if(c0===3)            return [3,groups[0],...groups.slice(1)];
+  if(c0===2&&c1===2)    return [2,groups[0],groups[1],groups[2]];
+  if(c0===2)            return [1,groups[0],...groups.slice(1)];
+  return [0,...rs];
+}
+function cmpRank(a,b){
+  for(let i=0;i<Math.max(a.length,b.length);i++){
+    const x=a[i]||0,y=b[i]||0;
+    if(x!==y) return x-y;
+  }
+  return 0;
+}
+function best7(cards){          // cards: 5..7 → best rank array
+  let best=null;
+  const n=cards.length;
+  const pick=(start,chosen)=>{
+    if(chosen.length===5){
+      const r=rank5(chosen);
+      if(!best||cmpRank(r,best)>0) best=r;
+      return;
+    }
+    if(n-start < 5-chosen.length) return;
+    for(let i=start;i<n;i++) pick(i+1,[...chosen,cards[i]]);
+  };
+  pick(0,[]);
+  return best;
+}
+function handName(r){
+  switch(r[0]){
+    case 8: return r[1]===14?'a Royal Flush!':'a Straight Flush, '+RWORD[r[1]]+' high';
+    case 7: return 'Four of a Kind — '+RWORD[r[1]]+'s';
+    case 6: return 'a Full House — '+RWORD[r[1]]+'s over '+RWORD[r[2]]+'s';
+    case 5: return 'a Flush, '+RWORD[r[1]]+' high';
+    case 4: return 'a Straight, '+RWORD[r[1]]+' high';
+    case 3: return 'Three of a Kind — '+RWORD[r[1]]+'s';
+    case 2: return 'Two Pair — '+RWORD[r[1]]+'s and '+RWORD[r[2]]+'s';
+    case 1: return 'a Pair of '+RWORD[r[1]]+'s';
+    default:return RWORD[r[1]]+' high';
+  }
+}
+/* ---------------- side pots ---------------- */
+function buildPots(players){    // players: [{i, total, folded}]
+  const c=players.map(p=>({i:p.i,amt:p.total,folded:p.folded}));
+  const pots=[];
+  while(true){
+    const liveAmts=c.filter(x=>!x.folded&&x.amt>0).map(x=>x.amt);
+    const remaining=c.reduce((s,x)=>s+x.amt,0);
+    if(remaining<=0) break;
+    if(liveAmts.length===0){       // only dead money left → add to last pot
+      if(pots.length) pots[pots.length-1].amt+=remaining;
+      break;
+    }
+    const lvl=Math.min(...liveAmts);
+    let amt=0; const elig=[];
+    for(const x of c){
+      const take=Math.min(x.amt,lvl);
+      x.amt-=take; amt+=take;
+      if(!x.folded&&take===lvl) elig.push(x.i);
+    }
+    pots.push({amt,elig});
+  }
+  return pots;
+}
+/*LOGIC-END*/
+
+/* ---------------- the band — Glen's cast ---------------- */
+const CAST=[
+  { name:'COSMO', color:'#ffe08a', // drums: cosmic chaos + cheeky British mischief
+    style:{tight:0.15,aggr:0.50,bluff:0.28},
+    talk:{
+      raise:["Raise! The universe practically insists.","I'm vibing with this hand, man.","I'm putting chips on this. The vibes are structurally sound.","I once won a hand exactly like this in a dream. Possibly this dream.","Giddy up.","Sweeten the pot, man. Pots LOVE sweetening."],
+      win:["See? The universe rewards chill.","THAT'S the cosmos settling its tab.","Oh yes! Oh yes! The chips abide.","I'd explain my strategy, but then it would stop working. It's very quantum.","Lovely. Simply lovely. Carry on.","Ka-CHING, baby! That's the sound my soul makes.","The prophecy is fulfilled. There was a prophecy. I just wrote it."],
+      lose:["Ah. A lesson. I accept it.","Far out. In the bad way.","That's just, like, the deck's opinion, man.","I didn't misplay — I simply followed the cosmic suggestion.","Well, THAT went pear-shaped.","Well, damn. The universe can be a real jerk, man."],
+      fold:["These cards are harshing the vibe. Out.","My horoscope said avoid clubs. And hearts. And these two specifically.","I fold. But philosophically? Still all-in.","I'm out. My cards and I have agreed to see other people."],
+      allin:["ALL IN! Time is a flat circle and so are these chips, man!","Everything! What could possibly— actually don't finish that thought."],
+      playerWin:["Beautiful hand, man. Genuinely moved.","Nice one. The felt has chosen you tonight.","See, REG? THAT'S how you do it without yelling.","Un-freaking-believable. Teach me, sensei.","Hell of a hand, man. The felt respects you. I respect you. Reg is furious."],
+      idle:["The cards are humming tonight.","I feel a ripple in the universe.","Ohhh… that's a friendly flop.","You ever notice how the river shows you what you need, not what you want?","This reminds me of the time I tried to bet with seashells. Long story.","One time in Butler I drummed 'Immortal' on a shopping cart. A raccoon gave me a standing ovation.","I had a scheme once. Four thousand kazoos. Reg vetoed it. Cowardice.","The fog machine incident. Were any of us truly there, man?","This felt has seen some things, man. Dark things. Sticky things.","Statistically one of us is bluffing right now. My money's on the deck.","I asked the universe for a sign and it dealt me a seven. Cryptic.","You know what this table needs? A kazoo solo. REG! ...Worth a try.","I'm not saying I can see your cards, man. I'm saying your cards have auras.","A poker chip is just a tiny record, man. Play it.","Somewhere out there, a version of me already won this hand.","Deep breaths, everyone. Except Reg. Reg, keep doing whatever that is.","I still dream about the Plasma Cathedral, man. The acoustics. The MENACE."],
+      aboutQuiet:["Here comes the quiet one again. Still waters, man. Deep currents.","You fold like someone who KNOWS things. Respect.","The quiet ones always cash out. It's a universal law, man."],
+      aboutAggro:["Every hand, man? Your chi is very… forward.","You raise more than Reg's blood pressure."],
+      aboutStreak:["The felt has chosen you tonight. I felt it choose.","Three in a row. You're surfing something cosmic, man."],
+      aboutCold:["The universe is testing you. It does that to the worthy.","Rough seas, man. But the tide always turns. Usually."],
+      badbeat:["The river giveth… and the river just mugged me, man.","Cosmic. Truly cosmic. In the worst possible way."],
+      busted:["And so the wheel turns. I'll be at the snack table, spiritually.","My chips have transcended this plane. Farewell, little discs."],
+      rail:["I'm just here for the vibes now, man.","From out here the game looks so… small. And I want back in."]
+    }},
+  { name:'STARLA', color:'#ff9ad5', // vocals: sharp realist, operatic meltdowns
+    style:{tight:0.50,aggr:0.70,bluff:0.12},
+    talk:{
+      raise:["Raise. And I want it noted I did that with GRACE.","I raise. Somebody at this table has to be a professional.","Watch closely, gentlemen. This is called competence."],
+      win:["Thank you, thank you. No flowers, just chips.","And the crowd goes wild. Inwardly. I'm very composed.","Was there ever any doubt? Don't answer that, Sonny.","Eat it, gentlemen. Eat. It.","THAT is how a professional does it, you absolute walnuts."],
+      lose:["I'm fine. I'm FINE. This is me being FINE. ...I need a moment.","Un. Be. LIEVABLE.","Oh, the injustice! The INJUSTICE! ...Okay. I'm done.","I've played sold-out shows with food poisoning. I will survive this. Barely.","Son of a— okay. OKAY. I'm fine. I'm a professional.","Kiss my encore, cards.","Oh that is just f— antastic. FANtastic. I said FANTASTIC."],
+      fold:["Absolutely not.","Fold. Immediately.","I refuse to dignify that play.","Fold. Like an adult. Some of you should try it.","I know when a song's over. Fold.","Nope. Hard nope. Nope with a BOW on it."],
+      allin:["ALL IN. And if this goes badly, we speak of it NEVER.","Everything on the line. So, a normal Tuesday for this band."],
+      playerWin:["Fine. FINE. That was well played and I hate it.","At least SOMEBODY at this table knows what they're doing.","You. Me. Rematch. Immediately."],
+      idle:["You're all exhausting.","I swear, I'm the only one here who understands how poker works.","If he monologues again, I'm muting the universe.","This table is a circus and I'm the unwilling ringmaster.","I'm surrounded by lunatics holding cards.","Reg once argued with a sound guy for two hours. Over ONE decibel.","Sonny asked me if a flush was a plumbing term. Bless him. BLESS him.","I've met roadies with better poker faces. And they were unconscious.","I could be doing vocal warmups right now. Instead: this.","Somebody deal before Cosmo achieves enlightenment.","The Mournful Plumbers called. They want their gloom back. I said no. It's OUR gloom now.","I have exactly ONE nerve left and this table is tap-dancing on it.","Somewhere out there is a band with a normal poker night. I hate them.","Note to self: next band, all mimes."],
+      aboutQuiet:["Watch out — the quiet one is plotting again. I can HEAR it.","You've folded so much you're basically origami. And yet: chips."],
+      aboutAggro:["Oh look, the human raise machine is warming up.","Careful, everyone. Someone woke up BOLD today."],
+      aboutStreak:["Okay, seriously — is the deck signed? WHO signed the deck?","Someone check the shuffler, because THIS is getting insulting."],
+      aboutCold:["Sweetheart, breathe. Even I fold sometimes. …Rarely.","Rough night. Stay in it. That's showbiz."],
+      badbeat:["On the RIVER? The RIVER?! I need to lie down on this floor.","That was robbery with EXTRA steps.","On the river. On the f— you know what? No. I'm classy. It was the F word, though.","I am going to go scream into a monitor wedge. BACK IN FIVE."],
+      busted:["Fine! FINE! I'll be at the bar composing a ballad about betrayal.","This is my farewell tour. Enjoy the table, VULTURES."],
+      rail:["Don't mind me, just narrating your mistakes from over here.","I saw that fold. WEAK."]
+    }},
+  { name:'SONNY', color:'#8fd0ff', // guitar: sweet, earnest, endearingly confused
+    style:{tight:0.25,aggr:0.15,bluff:0.04},
+    talk:{
+      raise:["I raise! ...That's the good one, right?","I like this hand. It feels friendly.","Did I do it right?","Oh! Neat! Raising!","The chips go in the middle and then good things happen. Raise!"],
+      win:["Oh wow! I didn't expect that at all!","I didn't mean to win… it just sort of happened.","I won? I WON! Is everyone seeing this?!","That one was for you, Butler, New Jersey!","Holy crap! HOLY CR— sorry, Reg said no swearing. HOLY HECK!","The cards liked me back! THE CARDS LIKED ME BACK!"],
+      lose:["Aw. Well! There's always the next one. That's the fun part.","I really thought the twos were special.","Losing builds character. I'm building SO much character.","Dang it. Dang it dang it DANG it. …I'm okay now.","It's okay. Money is just… sad confetti."],
+      fold:["I fold! Cheerfully!","These cards need some time to figure out who they want to be.","Out I go! Save my seat, it's my favorite one."],
+      allin:["All in! Reg says never do this! Sorry, Reg!","Every chip! They should stay together. They're a family."],
+      playerWin:["Wow, nice hand! Can you show me how— wait, Reg says that's cheating.","That was wonderful. Genuinely. I took notes.","Yay! I mean— team spirit!","WOOHOO! Wait. I lost. …WOOHOO anyway!"],
+      idle:["Is it my turn?","I'm just happy to be here with you guys.","Wait, so… the flop is the first three? I keep forgetting.","Which one's higher, a straight or a flush? No reason. No reason at all.","I love poker night. Even the losing parts. ESPECIALLY the snacks.","I once tuned up for a whole set to a song we weren't playing. Everyone was very kind about it.","I named my chips. Don't tell Reg. The tall stack is Gerald.","Do the cards get tired? Being shuffled seems exhausting.","I made friendship bracelets for everybody! Reg called his 'evidence.'","If we ALL fold, do the cards win?","Gerald the chip stack says hi. He's nervous tonight.","Remember the Plasma Cathedral? I got lost in there for two days. Great snacks though!"],
+      aboutQuiet:["You're SO patient! I try to be patient. I usually last one hand.","You're quiet like Reg before a rant. But nicer!"],
+      aboutAggro:["Every time you raise, my heart does a little drum fill!","You play SO brave. I took notes again."],
+      aboutStreak:["You're on FIRE! Not literally! That was one time, fog machine!","Three wins! Can I have your autograph? Reg says no. Asking anyway!"],
+      aboutCold:["Don't be sad! Some of my favorite hands were losses!","You'll get the next one. I believe in you SO much."],
+      badbeat:["Aw. AW. I really loved those cards.","That's okay! That's… no, actually, ouch."],
+      busted:["I'm out! It was a real honor, everybody. Save my seat for next time!","Aw. Well! More room for snacks."],
+      rail:["Go get 'em! Whoever wins! I support everyone!","This is fun to watch! Painful. But fun!"]
+    }},
+  { name:'REG', color:'#ff9d8a', // bass: explosive, rigid, pompous, towering fury
+    style:{tight:0.55,aggr:0.85,bluff:0.30},
+    talk:{
+      raise:["I raise, as any RATIONAL person would. Observe. LEARN.","This is a PRECISION raise. The calculations involved would make you weep.","Raise! And I shall be writing a strongly worded letter about that shuffle.","I'm raising. Cry about it. Melodically."],
+      win:["YES! Vindication! I want this hand NOTARIZED!","As I have stated REPEATEDLY, the system works when I am winning.","Order is restored. You may all resume being wrong about everything else.","Get your damn wallets out. Class is in session.","And THAT, you gorgeous disasters, is called MATHEMATICS."],
+      lose:["NO. Wrong.","This is madness.","I refuse to accept this reality.","Unbelievable!","You cannot — CANNOT — call with that hand! It's an affront to logic!","I'm surrounded by buffoons. ABSOLUTE buffoons.","I am NOT having a meltdown. This is a PRINCIPLED OBJECTION. At volume.","Sonny. SONNY. You called with THAT? I need to sit down. I AM sitting down. I need to sit down MORE.","You absolute MADMAN. You called with GARBAGE and the universe REWARDED you!","BULL. FEATHERS. …I said what I said. Loudly.","Oh, FUCKING marvelous. Truly. The chef's kiss of catastrophe.","I have been robbed in FOUR time zones and this is WORSE."],
+      fold:["Folded. STRATEGICALLY. Not — and I must stress this — out of weakness.","I withdraw with my dignity FULLY intact. Stop smiling, Cosmo."],
+      allin:["ALL IN! This is not gambling, this is MATHEMATICS WITH CONSEQUENCES!","Everything! And when I win, there WILL be a speech!"],
+      playerWin:["Fine. Adequate. A trained pigeon could have— no. No. It was well played. THERE. I SAID IT.","You have bested me THIS ONCE, and I shall think about it constantly.","Hmph. Beginner's luck, sustained over a statistically suspicious number of hands.","You lucky bastard. I say that with FURY. And a grudging sliver of respect."],
+      idle:["If he wins one more hand by accident, I'm flipping the table. I MEAN IT.","The amp settings are SACRED, Cosmo. SACRED.","I once held the low E through all of 'Faith.' Four minutes. Discipline. You wouldn't understand.","A kazoo orchestra. He wanted a KAZOO ORCHESTRA. This is my life.","Is it too much to ask for ONE soundcheck where nothing catches fire?","I once alphabetized our set list MID-SHOW. The crowd RESPECTED it.","Rules exist so that chaos knows where to AIM, apparently.","I have a SYSTEM. The system is FLAWLESS. The cards are the problem.","Statistically, I should be winning. I have the SPREADSHEET.","We are NEVER opening for the Mournful Plumbers again. NEVER. They took our green room hummus."],
+      aboutQuiet:["Ah. The QUIET one stirs. I've been watching you. I have NOTES.","Silence at a poker table is a WEAPON. I respect it. GRUDGINGLY."],
+      aboutAggro:["You raise ENTIRELY too much. It's reckless. It's chaotic. …It's WORKING, which is worse.","Aggression without CALCULATION is just noise. Loud, profitable noise. I HATE it."],
+      aboutStreak:["THREE hands running?! I demand this player be AUDITED!","This streak is statistically OFFENSIVE and I shall be graphing it."],
+      aboutCold:["Even YOU can see the mathematics has abandoned you. Welcome to MY life.","A slump. Textbook. Chapter four. I WROTE chapter four."],
+      badbeat:["ON THE RIVER. I am WRITING THIS DOWN. There will be an INQUIRY.","The mathematics WEPT just now. I heard it.","I have never wanted to flip a table more in my LIFE, and I once played a WEDDING. For FREE."],
+      busted:["ELIMINATED?! Fine. FINE. My exit shall be DIGNIFIED. Watch me. WATCH ME.","I demand a recount of every card dealt since Tuesday."],
+      rail:["I'm not sulking. I'm OBSERVING. Judgmentally.","That raise was incorrect and I shall be filing a report."]
+    }}
+];
+
+/* ---------------- cross-character reactions (Glen's banter hooks) ---------------- */
+const REACTIONS={
+  'REG:lose':[
+    {who:'COSMO', line:"Brother, your aura is… spiky."},
+    {who:'STARLA', line:"Oh good, here we go again."},
+    {who:'SONNY', line:"I'm sorry! I'm trying!"}
+  ],
+  'REG:raise':[
+    {who:'COSMO', line:"Your energy is… volcanic today."}
+  ],
+  'COSMO:idle':[
+    {who:'STARLA', line:"Please don't start with the metaphysics."},
+    {who:'REG', line:"Stop philosophizing and play the game!"},
+    {who:'REG', line:"Your energy is ALWAYS volcanic, Cosmo. Wait— no, that's mine. YOURS is wrong."}
+  ],
+  'COSMO:win':[
+    {who:'REG', line:"He doesn't even LOOK at his cards! HOW?!"},
+    {who:'STARLA', line:"He doesn't even LOOK at them. I need to lie down."}
+  ],
+  'SONNY:idle':[
+    {who:'STARLA', line:"Sweetheart… no. Just no."},
+    {who:'STARLA', line:"Sweetheart, you're adorable, but please stop talking during the turn."}
+  ],
+  'SONNY:win':[
+    {who:'REG', line:"NO! NO! NO! This is statistically impossible!"},
+    {who:'REG', line:"If he wins ONE more hand by accident, I'm flipping the table. I MEAN IT."},
+    {who:'STARLA', line:"Sweetheart… HOW?"}
+  ],
+  'STARLA:lose':[
+    {who:'COSMO', line:"You're glowing with righteous fury."}
+  ],
+  'STARLA:idle':[
+    {who:'REG', line:"Fine! FINE! I'll be quiet! Temporarily!"},
+    {who:'SONNY', line:"Oh! Sorry! I get excited."},
+    {who:'SONNY', line:"Did I mess up again?"}
+  ],
+  'REG:allin':[
+    {who:'COSMO', line:"Everybody stay calm. ESPECIALLY you, brother."},
+    {who:'SONNY', line:"Good luck, Reg! I mean it!"}
+  ],
+  'SONNY:allin':[
+    {who:'REG', line:"SONNY. NO."},
+    {who:'STARLA', line:"Sonny, sweetheart… do you know what all-in MEANS?"}
+  ],
+  'STARLA:win':[
+    {who:'REG', line:"Hmph. Competence. From SOMEONE at least."}
+  ]
+};
+const SAL={ // blackjack dealer
+  deal:["Cards are out. Make me proud or make me rich.","Here we go. House special.","Fresh off the top."],
+  playerBJ:["Blackjack. Of course. Take my money, superstar.","Twenty-one on the button. The band's gonna hear about this."],
+  playerBust:["Bust. Happens to headliners too.","Too greedy, kid. The felt forgives, the count doesn't.","Busted. The felt's a cruel damn teacher, kid.","And... over the line. House thanks you."],
+  dealerBust:["I bust. Somewhere, Sticks is laughing.","House goes down. Don't spend it all on merch."],
+  win:["House wins. It usually does. That's showbiz.","Mine. Nothing personal.","House wins. Don't cry on the cards — they're rented."],
+  lose:["You got me. This round.","Take it before I change my mind.","Well, I'll be damned. Take it before I count it again."],
+  push:["Push. We live to fight again.","Even. Like a well-mixed record."],
+  idle:["I ran the door at their basement shows. Now look at us.","Nova still owes me for a broken mic stand. Don't tell her I said that."]
+};
+
+/* ---------------- venues ---------------- */
+const VENUES=[
+  {name:'The Basement',      sub:'Where every band starts · blinds $5/$10',    unlock:0,      sb:5,    bb:10,   felt:['#233047','#141c2e'], decor:'basement'},
+  {name:'Monster Lounge',    sub:'Neon and nerve · blinds $25/$50',            unlock:1000,   sb:25,   bb:50,   felt:['#3a2455','#1d1230'], decor:'lounge'},
+  {name:'Club Meteor',       sub:'The big room · blinds $100/$200',            unlock:5000,   sb:100,  bb:200,  felt:['#0f4547','#082427'], decor:'club'},
+  {name:'Faith Ballroom',    sub:'Chandeliers, baby · blinds $500/$1,000',     unlock:25000,  sb:500,  bb:1000, felt:['#4d3a12','#241c08'], decor:'ballroom'},
+  {name:'The Immortal Room', sub:'Vegas. The dream. · blinds $2,500/$5,000',   unlock:100000, sb:2500, bb:5000, felt:['#511a2b','#230a12'], decor:'vegas'}
+];
+
+/* ---------------- save / load ---------------- */
+let bank=300, bjBank=2000, unlockedMax=0, tourneyWins=0, diff=1, helperOn=true, deckStyle='classic', lastDaily='';
+let stats={hands:0,folds:0,raises:0,calls:0,won:0,bigPot:0,bestCat:-1,bestName:''};
+let streak=0;      /* + = winning run, − = losing run */
+function save(){ try{ localStorage.setItem('xrs_poker_v1', JSON.stringify({bank,bjBank,unlockedMax,tourneyWins,stats,streak,diff,helperOn,deckStyle,lastDaily})); }catch(e){} }
+function load(){ try{
+  const s=JSON.parse(localStorage.getItem('xrs_poker_v1')||'null');
+  if(s){ bank=s.bank??300; unlockedMax=s.unlockedMax??0; tourneyWins=s.tourneyWins??0;
+    stats=Object.assign(stats, s.stats||{}); streak=s.streak||0;
+    if(s.diff!==undefined) diff=s.diff; if(s.helperOn!==undefined) helperOn=s.helperOn;
+    if(s.bjBank!==undefined) bjBank=s.bjBank;
+    if(s.deckStyle) deckStyle=s.deckStyle;
+    if(s.lastDaily) lastDaily=s.lastDaily; }
+}catch(e){} }
+function playerTrait(){
+  const n=stats.folds+stats.raises+stats.calls;
+  if(stats.hands<7 || n<10) return null;
+  if(streak>=3)  return 'aboutStreak';
+  if(streak<=-3) return 'aboutCold';
+  if(stats.folds/n>0.5)  return 'aboutQuiet';
+  if(stats.raises/n>0.35) return 'aboutAggro';
+  return null;
+}
+function checkUnlocks(){
+  for(let i=VENUES.length-1;i>0;i--){
+    if(bank>=VENUES[i].unlock && unlockedMax<i){ unlockedMax=i; toast('New room unlocked: '+VENUES[i].name+'!'); confetti(40); save(); checkTrophies(); break; }
+  }
+}
+function toast(t){
+  const el=$('toast'); el.textContent=t; el.classList.add('show');
+  setTimeout(()=>el.classList.remove('show'),3200);
+}
+
+/* ---------------- screens ---------------- */
+function show(id){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('on'));
+  $(id).classList.add('on');
+  $('backBtn').style.display = id==='lobby'?'none':'block';
+  updateHdr();
+}
+function updateHdr(){
+  const bjOn=$('blackjack').classList.contains('on');
+  $('bankHdr').textContent = bjOn ? (money(bjBank)+' \u2666') : money(bank);
+  $('bankLobby').textContent = bank.toLocaleString();
+}
+function setFelt(v){
+  document.documentElement.style.setProperty('--felt1', v.felt[0]);
+  document.documentElement.style.setProperty('--felt2', v.felt[1]);
+}
+/* ---------------- celebrations: confetti & champagne (gentle, no flashing) ---------------- */
+const CONF_COLORS=['#ffd268','#4de8c2','#ff9ad5','#b9a8ff','#ff8f6b','#8fd0ff'];
+function confetti(n,champagne){
+  if(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  const wrap=document.createElement('div');
+  wrap.style.cssText='position:fixed;inset:0;z-index:75;pointer-events:none;overflow:hidden';
+  document.body.appendChild(wrap);
+  for(let i=0;i<n;i++){
+    const p=document.createElement('div');
+    p.className='confP';
+    const emoji=champagne && i%9===0;
+    if(emoji){ p.textContent=(i%18===0)?'🍾':'🥂'; p.style.fontSize='22px'; }
+    else{
+      p.style.width=(5+Math.random()*6)+'px';
+      p.style.height=(8+Math.random()*7)+'px';
+      p.style.background=CONF_COLORS[i%CONF_COLORS.length];
+      p.style.borderRadius=Math.random()<0.4?'50%':'2px';
+    }
+    p.style.left=(Math.random()*100)+'vw';
+    p.style.animationDuration=(2.6+Math.random()*1.8)+'s';
+    p.style.animationDelay=(Math.random()*0.9)+'s';
+    wrap.appendChild(p);
+  }
+  setTimeout(()=>wrap.remove(), 5600);
+}
+/* ---------------- brag: share your glory ---------------- */
+function gameURL(){ return location.origin && location.origin!=='null' ? location.origin+location.pathname : 'https://glenpap.github.io/'; }
+function brag(text){
+  const full=text+' 🃏 Play free: '+gameURL();
+  if(navigator.share){ navigator.share({text:full}).catch(()=>{}); return; }
+  try{ navigator.clipboard.writeText(full); toast('Copied! Paste it anywhere 📣'); }
+  catch(e){ toast(full.slice(0,60)+'…'); }
+}
+let pendingBrag=null;
+/* ---------------- trophies that announce themselves ---------------- */
+const TROPHY_DEFS=[
+  {k:'room1', label:'Escaped the Basement',              t:()=>unlockedMax>=1},
+  {k:'room2', label:'Big Room Energy (Club Meteor)',     t:()=>unlockedMax>=2},
+  {k:'room3', label:'Chandelier Club (Faith Ballroom)',  t:()=>unlockedMax>=3},
+  {k:'room4', label:'Vegas, Baby (The Immortal Room)',   t:()=>unlockedMax>=4},
+  {k:'champ', label:'Tournament Champion',               t:()=>tourneyWins>=1},
+  {k:'champ3',label:'Three-Time Champ',                  t:()=>tourneyWins>=3},
+  {k:'monster',label:'Monster Hand (full house or better)',t:()=>stats.bestCat>=6},
+  {k:'royal', label:'ROYAL FLUSH',                       t:()=>stats.bestCat>=8},
+  {k:'roller',label:'High Roller ($10,000 pot)',         t:()=>stats.bigPot>=10000},
+  {k:'regular',label:'Table Regular (100 hands)',        t:()=>stats.hands>=100}
+];
+function initTrophies(){ if(!stats.trophies) stats.trophies=TROPHY_DEFS.filter(d=>d.t()).map(d=>d.k); }
+function checkTrophies(){
+  TROPHY_DEFS.forEach(d=>{
+    if(!stats.trophies.includes(d.k) && d.t()){
+      stats.trophies.push(d.k); save();
+      toast('🏆 Trophy earned: '+d.label);
+      sfx('win'); confetti(30);
+    }
+  });
+}
+
+function overlay(title,body,cb,bragText,cancelable,okLabel,altLabel,altCb){
+  $('ovTitle').textContent=title; $('ovBody').innerHTML=body;
+  $('overlay').classList.add('on');
+  $('ovBtn').textContent=okLabel||'OK';
+  $('ovBrag').style.display=bragText?'inline-block':'none';
+  $('ovBrag').onclick=()=>{ if(bragText) brag(bragText); };
+  $('ovCancel').style.display=cancelable?'inline-block':'none';
+  $('ovCancel').onclick=()=>$('overlay').classList.remove('on');
+  $('ovAlt').style.display=altLabel?'inline-block':'none';
+  if(altLabel){ $('ovAlt').textContent=altLabel;
+    $('ovAlt').onclick=()=>{ $('overlay').classList.remove('on'); if(altCb)altCb(); }; }
+  $('ovBtn').onclick=()=>{ $('overlay').classList.remove('on'); if(cb)cb(); };
+}
+/* sitting down: continue the current run, or wipe it and start new */
+function chooseStart(m, venueIdx){
+  initAudio();
+  if(bank<=300 && unlockedMax===0){ startPoker(m, venueIdx); return; }
+  overlay('Take a seat',
+    'Continue your run — or start a brand-new one?<br><br>'+
+    '<span style="font-size:14px;color:#b7c2ea">A new run resets your bankroll to $300 and re-locks the rooms. Trophies, records, and career stats are kept.</span>',
+    ()=>startPoker(m, venueIdx),
+    null, true,
+    'Continue ('+money(bank)+')',
+    'New Run ($300)',
+    ()=>{ bank=300; unlockedMax=0; save(); renderLobby(); startPoker(m, 0); });
+}
+/* the run is over — no loans in this band */
+function gameOver(){
+  session++; try{speechSynthesis.cancel();}catch(e){}
+  stats.busts=(stats.busts||0)+1; save();
+  overlay('Game Over',
+    'The run ends at '+money(bank)+'. No loans in this band — you earn it or you start over.<br><br>'+
+    'This career: <b>'+stats.hands+'</b> hands · biggest pot <b>'+money(stats.bigPot)+'</b><br>'+
+    'Runs busted: <b>'+stats.busts+'</b> · Tournaments: <b>'+tourneyWins+' won / '+(stats.tLoss||0)+' lost</b>',
+    ()=>{ bank=300; unlockedMax=0; save(); renderLobby(); show('lobby'); toast('Fresh $300. The Basement awaits.'); },
+    null, false, 'Start a New Run');
+}
+
+/* ---------------- settings, trophies, title ---------------- */
+const DECKS=['classic','midnight','stardust','bigprint'];
+const DECK_NAMES={classic:'Classic',midnight:'Midnight',stardust:'Stardust',bigprint:'Big Print'};
+function applyDeck(){ document.body.className = deckStyle==='classic' ? '' : ('deck-'+deckStyle); }
+function renderSettings(){
+  document.querySelectorAll('#moodRow .pill').forEach(b=>b.classList.toggle('sel', +b.dataset.d===diff));
+  $('helperBtn').textContent='🃏 Hand Helper: '+(helperOn?'On':'Off');
+  $('deckBtn').textContent='🂡 Deck: '+DECK_NAMES[deckStyle];
+}
+document.querySelectorAll('#moodRow .pill').forEach(b=>{
+  b.onclick=()=>{ diff=+b.dataset.d; save(); renderSettings();
+    toast(diff===0?'The band promises to go easy on you. Mostly.':diff===2?'Reg has been told. He is DELIGHTED.':'Back to house rules.'); };
+});
+$('helperBtn').onclick=()=>{ helperOn=!helperOn; save(); renderSettings();
+  toast(helperOn?'Hand helper ON — your hand and win odds show above your chips.':'Hand helper OFF — flying blind, good luck!'); };
+$('deckBtn').onclick=()=>{
+  deckStyle=DECKS[(DECKS.indexOf(deckStyle)+1)%DECKS.length];
+  save(); renderSettings(); applyDeck();
+  toast('Deck: '+DECK_NAMES[deckStyle]); };
+$('resetBtn').onclick=()=>{
+  overlay('Start fresh?','This resets your bankroll to $300 and locks the rooms again. Career stats, trophies, and tournament record are kept.',
+    ()=>{ bank=300; unlockedMax=0; save(); renderLobby(); toast('Fresh $300. The Basement awaits.'); },
+    null, true, 'Start Fresh');
+};
+/* coming back to the tab: redraw the table and re-show whose move it is */
+document.addEventListener('visibilitychange',()=>{
+  if(!document.hidden && P.length && document.getElementById('poker').classList.contains('on')){
+    renderAll(false);
+    if(awaitingHuman) setMsg(lastPrompt);
+  }
+});
+/* button feel: a little buzz on phones */
+document.addEventListener('pointerdown',e=>{
+  const b=e.target.closest('button, a.venue');
+  if(b && navigator.vibrate) navigator.vibrate(12);
+},{passive:true});
+$('trophyBtn').onclick=()=>{
+  const sHtml='Hands played: <b>'+stats.hands+'</b> · won: <b>'+stats.won+'</b><br>'+
+    'Biggest pot: <b>'+money(stats.bigPot)+'</b><br>'+
+    'Best hand: <b>'+(stats.bestName||'none yet')+'</b><br>'+
+    'Tournament wins: <b>'+tourneyWins+'</b><br>'+
+    'Blackjack record: <b>'+bjRecord()+'</b><br><br>'+
+    TROPHY_DEFS.map(d=>(stats.trophies&&stats.trophies.includes(d.k)?'🏆 ':'🔒 ')+d.label).join('<br>');
+  overlay('Your Story', sHtml, null);
+};
+$('dealMeIn').onclick=()=>{
+  initAudio();
+  const t=$('titleScreen'); t.classList.add('gone');
+  setTimeout(()=>{ if(t.parentNode) t.parentNode.removeChild(t); },1500);
+  const today=new Date().toDateString();
+  if(lastDaily!==today){
+    lastDaily=today; bank+=100; save(); updateHdr(); renderLobby();
+    setTimeout(()=>{ toast('🎁 Daily gig money: +$100'); sfx('chip'); },900);
+  }
+};
+
+/* ---------------- lobby ---------------- */
+function renderLobby(){
+  updateHdr();
+  const list=$('venueList'); list.innerHTML='';
+  VENUES.forEach((v,i)=>{
+    const locked = i>unlockedMax && bank<v.unlock;
+    const b=document.createElement('button');
+    b.className='venue'+(locked?' locked':'');
+    b.innerHTML='<div><div class="vName">'+(locked?'🔒 ':'♠ ')+v.name+'</div><div class="vSub">'+
+      (locked?('Unlocks at a '+money(v.unlock)+' bankroll'):v.sub)+'</div></div><div class="vGo">'+(locked?'':'→')+'</div>';
+    if(!locked) b.onclick=()=>chooseStart('casual', i);
+    list.appendChild(b);
+  });
+}
+$('tourneyBtn').onclick=()=>chooseStart('tourney', unlockedMax);
+$('bjBtn').onclick=()=>{ initAudio(); startBJ(); };
+$('backBtn').onclick=()=>{ leaveTable(); };
+$('muteBtn').onclick=function(){ initAudio(); muted=!muted; this.classList.toggle('off',muted); };
+
+/* ==========================================================
+   POKER ENGINE
+   ========================================================== */
+let session=0;
+let P=[], mode='casual', venue=VENUES[0], deck=[], board=[], potDisplay=0;
+let dealerIdx=0, handCount=0, tourneyLevel=0;
+let curSBi=-1, curBBi=-1, lastLvl=0;
+let awaitingHuman=false, lastPrompt='';
+
+/* ---------------- drawn characters ---------------- */
+function charSVG(name){
+  /* wardrobe: casual (basement/lounge), smart (club), formal (ballroom/vegas) */
+  const vi=(typeof venue!=='undefined'&&venue)?VENUES.indexOf(venue):0;
+  const tier=vi>=3?2:(vi===2?1:0);
+  const W={COSMO:['#5d6b3a','#2f4858','#15151f'],STARLA:['#17121e','#241a33','#0d0a12'],
+           SONNY:['#8a8f98','#4a5568','#16161e'],REG:['#6e2a2a','#4a2438','#101018']}[name]||['#333','#333','#333'];
+  const OUT=W[tier];
+  const LAP=['#6f747d','#39424f','#0c0c12'][tier];
+  const fx=tier===2;
+  const bow='<path d="M43 92 l7 3 l7 -3 l0 7 l-7 -3 l-7 3 Z" fill="#ffd268"/>';
+  if(name==='COSMO') return '<svg class="charSVG" viewBox="0 0 100 116">'+
+    '<ellipse cx="50" cy="112" rx="28" ry="4.5" fill="rgba(0,0,0,.45)"/>'+
+    '<path d="M16 116 Q16 90 50 90 Q84 90 84 116 Z" fill="'+OUT+'"/>'+
+    '<rect x="44" y="74" width="12" height="18" fill="#d4a276"/>'+
+    '<ellipse cx="50" cy="54" rx="26" ry="28" fill="#e8b98a"/>'+
+    '<circle cx="28" cy="36" r="12" fill="#6b4a2f"/><circle cx="42" cy="26" r="13" fill="#6b4a2f"/>'+
+    '<circle cx="58" cy="26" r="13" fill="#6b4a2f"/><circle cx="72" cy="36" r="12" fill="#6b4a2f"/>'+
+    '<circle cx="22" cy="52" r="8" fill="#6b4a2f"/><circle cx="78" cy="52" r="8" fill="#6b4a2f"/>'+
+    '<rect x="25" y="37" width="50" height="8" rx="4" fill="#ffe08a"/>'+
+    '<circle cx="38" cy="57" r="9" fill="rgba(255,160,80,.5)" stroke="#4de8c2" stroke-width="2.5"/>'+
+    '<circle cx="62" cy="57" r="9" fill="rgba(255,160,80,.5)" stroke="#4de8c2" stroke-width="2.5"/>'+
+    '<line x1="47" y1="57" x2="53" y2="57" stroke="#4de8c2" stroke-width="2.5"/>'+
+    '<g class="mBase"><path d="M40 74 Q50 81 60 74" stroke="#7a4a2a" stroke-width="3" fill="none" stroke-linecap="round"/></g>'+
+    '<g class="mHappy"><path d="M38 72 Q50 86 62 72" stroke="#7a4a2a" stroke-width="3.5" fill="none" stroke-linecap="round"/></g>'+
+    '<g class="mSad"><path d="M40 79 Q50 71 60 79" stroke="#7a4a2a" stroke-width="3" fill="none" stroke-linecap="round"/></g>'+(fx?bow:'')+'</svg>';
+  if(name==='STARLA') return '<svg class="charSVG" viewBox="0 0 100 116">'+
+    '<ellipse cx="50" cy="112" rx="28" ry="4.5" fill="rgba(0,0,0,.45)"/>'+
+    '<path d="M25 34 Q25 14 50 14 Q75 14 75 34 L77 96 Q68 105 59 96 L59 50 Q59 38 50 38 Q41 38 41 50 L41 96 Q32 105 23 96 Z" fill="#2e2016"/>'+
+    '<path d="M16 116 Q16 92 50 88 Q84 92 84 116 Z" fill="'+OUT+'"/>'+
+    '<path d="M30 95 Q50 86 70 95 L70 90 Q50 82 30 90 Z" fill="#0d0a12"/>'+
+    '<rect x="44" y="72" width="12" height="20" fill="#e3b68e"/>'+
+    '<ellipse cx="50" cy="55" rx="20" ry="24" fill="#f0c9a6"/>'+
+    '<path d="M30 44 Q32 22 50 22 Q68 22 70 44 Q66 32 51 31 L50 26 L49 31 Q34 32 30 44 Z" fill="#2e2016"/>'+
+    '<path d="M30 44 Q28 70 26 88 L34 88 Q33 62 34 46 Z" fill="#2e2016"/>'+
+    '<path d="M70 44 Q72 70 74 88 L66 88 Q67 62 66 46 Z" fill="#2e2016"/>'+
+    '<path d="M36 49 Q41 46 46 49" stroke="#3a2a1c" stroke-width="2.5" fill="none" stroke-linecap="round"/>'+
+    '<path d="M54 49 Q59 46 64 49" stroke="#3a2a1c" stroke-width="2.5" fill="none" stroke-linecap="round"/>'+
+    '<ellipse cx="41" cy="55" rx="3.6" ry="2.9" fill="#fff"/><ellipse cx="59" cy="55" rx="3.6" ry="2.9" fill="#fff"/>'+
+    '<circle cx="41" cy="55" r="2" fill="#5a7a3e"/><circle cx="59" cy="55" r="2" fill="#5a7a3e"/>'+
+    '<path d="M50 58 Q52 62 50 64" stroke="#d9a67f" stroke-width="2" fill="none" stroke-linecap="round"/>'+
+    '<g class="mBase"><path d="M43 70 Q50 74 57 70" stroke="#b06a72" stroke-width="3" fill="none" stroke-linecap="round"/></g>'+
+    '<g class="mHappy"><path d="M41 69 Q50 79 59 69" stroke="#b06a72" stroke-width="3.5" fill="none" stroke-linecap="round"/></g>'+
+    '<g class="mSad"><path d="M43 74 Q50 67 57 74" stroke="#b06a72" stroke-width="3" fill="none" stroke-linecap="round"/></g>'+
+    '<circle cx="29" cy="70" r="3.4" fill="none" stroke="#ffd268" stroke-width="1.6"/>'+
+    '<circle cx="71" cy="70" r="3.4" fill="none" stroke="#ffd268" stroke-width="1.6"/>'+
+    '<circle cx="50" cy="94" r="2" fill="#c9c2d8"/>'+
+    '<rect x="34" y="50" width="32" height="9" rx="4.5" fill="#f0c9a6" opacity="0">'+
+    '<animate attributeName="opacity" values="0;0;1;0;0" keyTimes="0;0.9;0.93;0.96;1" dur="5.6s" repeatCount="indefinite"/></rect>'+(fx?'<circle cx="42" cy="100" r="1.6" fill="#ffd268"/><circle cx="56" cy="106" r="1.6" fill="#ffd268"/><circle cx="64" cy="98" r="1.6" fill="#ffd268"/>':'')+'</svg>';
+  if(name==='SONNY') return '<svg class="charSVG" viewBox="0 0 100 116">'+
+    '<ellipse cx="50" cy="112" rx="28" ry="4.5" fill="rgba(0,0,0,.45)"/>'+
+    '<path d="M16 116 Q16 90 50 88 Q84 90 84 116 Z" fill="'+OUT+'"/>'+
+    '<path d="M42 90 L50 116 L58 90 L50 94 Z" fill="#e8e8ec"/>'+
+    '<path d="M34 92 L44 90 L40 106 Z" fill="'+LAP+'"/><path d="M66 92 L56 90 L60 106 Z" fill="'+LAP+'"/>'+
+    '<rect x="44" y="72" width="12" height="20" fill="#dcae82"/>'+
+    '<ellipse cx="50" cy="54" rx="23" ry="26" fill="#e9bd94"/>'+
+    '<path d="M27 46 Q26 24 48 22 Q72 20 73 44 Q70 32 58 30 Q66 36 64 40 Q58 30 44 31 Q32 33 27 46 Z" fill="#3a2c22"/>'+
+    '<path d="M27 46 Q26 52 28 58 L31 44 Z" fill="#3a2c22"/><path d="M73 44 Q74 52 72 58 L69 43 Z" fill="#3a2c22"/>'+
+    '<path d="M34 47 L46 46" stroke="#3a2c22" stroke-width="3.4" stroke-linecap="round"/>'+
+    '<path d="M54 46 L66 47" stroke="#3a2c22" stroke-width="3.4" stroke-linecap="round"/>'+
+    '<ellipse cx="40" cy="54" rx="3.8" ry="3.1" fill="#fff"/><ellipse cx="60" cy="54" rx="3.8" ry="3.1" fill="#fff"/>'+
+    '<circle cx="40" cy="54" r="2.1" fill="#41586e"/><circle cx="60" cy="54" r="2.1" fill="#41586e"/>'+
+    '<path d="M50 56 Q52 62 49 65" stroke="#c99568" stroke-width="2" fill="none" stroke-linecap="round"/>'+
+    '<path d="M39 69 Q50 64 61 69 L61 72 Q50 67 39 72 Z" fill="#9c9c9c"/>'+
+    '<path d="M41 74 Q50 71 59 74 Q58 84 50 85 Q42 84 41 74 Z" fill="#9c9c9c"/>'+
+    '<g class="mBase"><path d="M41 72 Q50 78 59 72" stroke="#5a4030" stroke-width="3" fill="none" stroke-linecap="round"/></g>'+
+    '<g class="mHappy"><path d="M39 71 Q50 83 61 71" stroke="#5a4030" stroke-width="3.5" fill="none" stroke-linecap="round"/></g>'+
+    '<g class="mSad"><path d="M41 77 Q50 70 59 77" stroke="#5a4030" stroke-width="3" fill="none" stroke-linecap="round"/></g>'+
+    '<rect x="33" y="49" width="34" height="10" rx="5" fill="#e9bd94" opacity="0">'+
+    '<animate attributeName="opacity" values="0;0;1;0;0" keyTimes="0;0.9;0.93;0.96;1" dur="4.7s" repeatCount="indefinite"/></rect>'+(fx?bow:'')+'</svg>';
+  /* REG */
+  return '<svg class="charSVG" viewBox="0 0 100 116">'+
+    '<ellipse cx="50" cy="112" rx="28" ry="4.5" fill="rgba(0,0,0,.45)"/>'+
+    '<path d="M16 116 Q16 90 50 90 Q84 90 84 116 Z" fill="'+OUT+'"/>'+
+    '<path d="M40 92 L50 104 L60 92 Z" fill="#ffd268"/>'+
+    '<rect x="44" y="72" width="12" height="20" fill="#d9a67f"/>'+
+    '<ellipse cx="50" cy="52" rx="24" ry="30" fill="#e6b493"/>'+
+    '<path d="M26 44 Q26 30 36 26 L36 52 Q30 52 26 44 Z" fill="#2e2620"/>'+
+    '<path d="M74 44 Q74 30 64 26 L64 52 Q70 52 74 44 Z" fill="#2e2620"/>'+
+    '<path d="M36 26 Q50 20 64 26" stroke="#2e2620" stroke-width="3" fill="none"/>'+
+    '<path d="M32 46 L45 51" stroke="#2e2620" stroke-width="4.5" stroke-linecap="round"/>'+
+    '<path d="M68 46 L55 51" stroke="#2e2620" stroke-width="4.5" stroke-linecap="round"/>'+
+    '<circle cx="41" cy="56" r="2.6" fill="#2e2620"/><circle cx="59" cy="56" r="2.6" fill="#2e2620"/>'+
+    '<path d="M32 70 Q50 60 68 70 Q50 80 32 70 Z" fill="#3a2c22"/>'+
+    '<path d="M42 82 Q50 79 58 82" stroke="#8a5a3a" stroke-width="2.5" fill="none" stroke-linecap="round"/>'+
+    '<rect x="33" y="51" width="34" height="10" rx="5" fill="#e6b493" opacity="0">'+
+    '<animate attributeName="opacity" values="0;0;1;0;0" keyTimes="0;0.9;0.93;0.96;1" dur="6.3s" repeatCount="indefinite"/></rect></svg>';
+}
+
+/* ---------------- venue scenery ---------------- */
+const DECOR={
+  basement:'<div style="position:absolute;inset:0;opacity:.5;background:repeating-linear-gradient(0deg,#241b16 0 16px,#31241b 16px 18px),repeating-linear-gradient(90deg,rgba(0,0,0,0) 0 38px,#31241b 38px 40px)"></div>'+
+    '<div style="position:absolute;left:0;right:0;top:0;height:10px;background:linear-gradient(#3a3a3a,#181818);border-bottom:2px solid #0a0a0a"></div>'+
+    '<div style="position:absolute;left:0;right:0;top:14px;height:16px;background-image:radial-gradient(circle at 10px 6px,#ffd9a0 2.5px,rgba(255,200,120,.25) 5px,transparent 6px);background-size:44px 16px;background-repeat:repeat-x;opacity:.85"></div>'+
+    '<div style="position:absolute;left:50%;top:10px;width:2px;height:44px;background:#0a0a0a"></div>'+
+    '<div style="position:absolute;left:50%;top:50px;width:24px;height:24px;margin-left:-12px;border-radius:50%;background:radial-gradient(circle,#ffeebc,#c9a24d);box-shadow:0 0 34px 14px rgba(255,220,140,.3)"></div>'+
+    '<div style="position:absolute;left:50%;top:40px;width:340px;height:240px;transform:translateX(-50%);background:radial-gradient(ellipse at 50% 12%,rgba(255,220,150,.15),rgba(0,0,0,0) 62%);pointer-events:none"></div>'+
+    '<a href="https://youtube.com/playlist?list=PLd1uZNELj91lcc_vY2wqcmCd9OqVxs0-d&si=F27_wgabQNySxqzK" target="_blank" rel="noopener" title="Watch X-Ray Star on YouTube" style="pointer-events:auto;text-decoration:none">'+
+    '<svg style="position:absolute;left:6%;top:36px;transform:rotate(-5deg);box-shadow:0 7px 14px rgba(0,0,0,.65)" width="64" height="84" viewBox="0 0 64 84">'+
+      '<rect width="64" height="84" fill="#8a2c12"/>'+
+      '<path d="M0 74 L14 66 L26 72 L40 64 L54 70 L64 66 L64 84 L0 84 Z" fill="#4a1408"/>'+
+      '<path d="M32 46 m-15 0 a15 15 0 1 1 30 0 a11 11 0 1 1 -22 0 a7 7 0 1 1 14 0" stroke="#2c9a6e" fill="none" stroke-width="3.2" opacity=".95"/>'+
+      '<circle cx="32" cy="46" r="3" fill="#ffd268"/>'+
+      '<path d="M12 30 l2.5 0 M13.2 28.8 l0 2.5 M11.4 29 l3.4 2 M11.4 31 l3.4 -2" stroke="#ffd268" stroke-width="1.2"/>'+
+      '<path d="M38 62 l13 -4 l5 2 l-4 4 l-13 2 Z" fill="#d8c26a"/><path d="M48 57 l3 -3 l1 4 Z" fill="#d8c26a"/>'+
+      '<text x="32" y="13" text-anchor="middle" font-family="Alfa Slab One,serif" font-size="10" fill="#ffd268">X-RAY</text>'+
+      '<text x="32" y="24" text-anchor="middle" font-family="Alfa Slab One,serif" font-size="10" fill="#ffd268">STAR</text></svg>'+
+    '<div style="position:absolute;left:6%;top:126px;transform:rotate(-5deg);font-size:9px;color:#ffd268;letter-spacing:.06em;text-shadow:0 1px 3px #000">▶ tap for videos</div></a>'+
+    '<a href="https://open.spotify.com/artist/7kuG094aXgRmkgIOH9Tpdi" target="_blank" rel="noopener" title="X-Ray Star on Spotify" style="pointer-events:auto;text-decoration:none">'+
+    '<div style="position:absolute;right:5%;top:52px;width:58px;height:74px;background:#2a1420;border:3px solid #55283a;border-radius:3px;transform:rotate(4deg);box-shadow:0 7px 14px rgba(0,0,0,.65);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px">'+
+      '<div style="font-family:\'Alfa Slab One\',serif;font-size:8px;color:#ff9ad5;text-align:center;line-height:1.35">POKER<br>NIGHT</div>'+
+      '<div style="font-size:14px">♠</div>'+
+      '<div style="font-size:6.5px;color:#c9a24d">BYOB</div></div></a>'+
+    '<div style="position:absolute;right:22%;bottom:6px;width:66px;height:46px;background:#161616;border:2px solid #3a3a3a;border-radius:6px"><div style="margin:6px auto;width:46px;height:22px;background:repeating-linear-gradient(90deg,#222 0 4px,#333 4px 8px);border-radius:3px"></div><div style="position:absolute;right:5px;top:4px;width:5px;height:5px;border-radius:50%;background:#ff8f6b;box-shadow:0 0 6px #ff8f6b"></div></div>',
+  lounge:'<div style="position:absolute;inset:0;opacity:.75;background:repeating-linear-gradient(90deg,#251140 0 30px,#372058 30px 60px)"></div>'+
+    '<div style="position:absolute;inset:0;background:radial-gradient(ellipse at 50% 100%,rgba(255,90,190,.12),rgba(0,0,0,0) 55%)"></div>'+
+    '<div style="position:absolute;left:8%;top:36px;width:36px;height:36px;border-radius:50%;border:3px solid #ff9ad5;box-shadow:0 0 18px rgba(255,90,190,.8);opacity:.85"></div>'+
+    '<div style="position:absolute;left:13%;top:58px;width:20px;height:20px;border-radius:50%;border:3px solid #4de8c2;box-shadow:0 0 14px rgba(77,232,194,.8);opacity:.8"></div>'+
+    '<div style="position:absolute;right:8%;top:48px;width:24px;height:24px;border-radius:50%;border:3px solid #b9a8ff;box-shadow:0 0 16px rgba(150,110,255,.8);opacity:.8"></div>',
+  club:'<div style="position:absolute;left:-10%;top:-20px;width:45%;height:130%;background:linear-gradient(170deg,rgba(77,232,194,.22),rgba(77,232,194,0) 65%);transform:rotate(14deg)"></div>'+
+    '<div style="position:absolute;right:-10%;top:-20px;width:45%;height:130%;background:linear-gradient(190deg,rgba(125,232,255,.2),rgba(125,232,255,0) 65%);transform:rotate(-14deg)"></div>'+
+    '<div style="position:absolute;left:0;right:0;top:0;height:8px;background:repeating-linear-gradient(90deg,#0d3a3c 0 22px,#12595c 22px 44px)"></div>'+
+    '<div style="position:absolute;left:50%;top:34px;transform:translateX(-50%);width:110px;height:3px;background:linear-gradient(90deg,transparent,#4de8c2,transparent);box-shadow:0 0 14px rgba(77,232,194,.9)"></div>',
+  ballroom:'<div style="position:absolute;inset:0;background:radial-gradient(ellipse at 50% 0%,rgba(255,220,150,.16),rgba(0,0,0,0) 60%)"></div>'+
+    '<div style="position:absolute;left:0;top:0;width:26%;height:60px;border-radius:0 0 100% 0;border-bottom:3px solid rgba(201,162,77,.5);border-right:3px solid rgba(201,162,77,.3)"></div>'+
+    '<div style="position:absolute;right:0;top:0;width:26%;height:60px;border-radius:0 0 0 100%;border-bottom:3px solid rgba(201,162,77,.5);border-left:3px solid rgba(201,162,77,.3)"></div>'+
+    '<svg style="position:absolute;left:16%;top:2px" width="120" height="58" viewBox="0 0 120 58">'+
+    '<path d="M60 0 V14 M60 14 Q30 14 24 34 M60 14 Q90 14 96 34 M60 14 Q60 26 60 38" stroke="#c9a24d" stroke-width="3" fill="none"/>'+
+    '<circle cx="24" cy="40" r="6" fill="#ffeebc"/><circle cx="96" cy="40" r="6" fill="#ffeebc"/><circle cx="60" cy="44" r="7" fill="#ffeebc"/>'+
+    '<circle cx="24" cy="40" r="10" fill="rgba(255,235,180,.25)"/><circle cx="96" cy="40" r="10" fill="rgba(255,235,180,.25)"/><circle cx="60" cy="44" r="12" fill="rgba(255,235,180,.25)"/></svg>',
+  vegas:'<div style="position:absolute;inset:0;opacity:.65;background:repeating-linear-gradient(90deg,#3d0f1c 0 34px,#511527 34px 68px)"></div>'+
+    '<div style="position:absolute;inset:0;background:radial-gradient(ellipse at 50% 100%,rgba(255,180,80,.1),rgba(0,0,0,0) 55%)"></div>'+
+    '<div style="position:absolute;left:50%;top:6px;transform:translateX(-50%);width:250px;height:38px;border-radius:8px;background:#1a0810;border:2px solid #c9a24d;box-shadow:0 0 26px rgba(255,180,80,.4)">'+
+    '<div style="position:absolute;inset:3px;background:radial-gradient(circle at 8px 50%,#ffd268 3px,rgba(0,0,0,0) 4px);background-size:16px 100%;background-repeat:repeat-x"></div></div>'+
+    '<div style="position:absolute;left:10%;top:56px;font-size:20px;opacity:.85">🎲</div>'+
+    '<div style="position:absolute;right:10%;top:60px;font-size:18px;opacity:.85">🎲</div>'
+};
+function setVenueScene(v){
+  setFelt(v);
+  curSet=v.decor;
+  /* every room gets a floor: darkens toward the table, faint plank lines */
+  const FLOOR='<div style="position:absolute;left:0;right:0;bottom:0;height:34%;'+
+    'background:linear-gradient(rgba(0,0,0,0),rgba(0,0,0,.5) 75%),'+
+    'repeating-linear-gradient(100deg,rgba(255,255,255,.028) 0 2px,rgba(0,0,0,0) 2px 46px);'+
+    'box-shadow:inset 0 10px 16px -10px rgba(0,0,0,.9)"></div>';
+  $('decor').innerHTML = (DECOR[v.decor]||'')+FLOOR;
+  $('roomSign').textContent = v.name.toUpperCase();
+}
+
+function seatHTML(p,i){
+  return '<div class="charSpot" id="seat'+i+'">'+
+    charSVG(p.name)+
+    '<div class="plate">'+
+    '<div class="sName" id="nm'+i+'" style="color:'+p.color+'">'+p.name+'</div>'+
+    '<div class="sChips" id="chips'+i+'"></div>'+
+    '<div class="sBet" id="bet'+i+'"></div>'+
+    '<div class="miniCards" id="mini'+i+'"></div>'+
+    '</div>'+
+    '<div class="bubble" id="bub'+i+'"></div>'+
+  '</div>';
+}
+/* ---------------- character voices (device text-to-speech) ---------------- */
+let voicesOn=true, VOICEMAP={};
+const VPROF={COSMO:{p:0.7,r:0.85},STARLA:{p:1.05,r:1.0},SONNY:{p:1.25,r:1.08},REG:{p:0.6,r:1.0},SAL:{p:0.9,r:0.92}};
+function pickVoices(){
+  try{
+    const vs=speechSynthesis.getVoices().filter(v=>v.lang&&v.lang.toLowerCase().startsWith('en'));
+    if(!vs.length) return;
+    const F=['female','zira','susan','samantha','victoria','karen','moira','tessa','fiona','serena','aria','jenny','michelle','sonia','natasha','libby','emma','ava','allison','joanna','salli','kimberly','ivy','hazel','heather','catherine','linda'];
+    const M=['male','david','mark','daniel','alex','fred','george','james','ryan','guy','christopher','eric','brandon','tom','richard','oliver','thomas','matthew','justin','joey','william','sean','liam'];
+    const has=(v,list)=>list.some(k=>v.name.toLowerCase().includes(k));
+    const fem=vs.filter(v=>has(v,F));
+    const mal=vs.filter(v=>has(v,M) && !has(v,F));
+    const anyF=fem.length?fem:vs, anyM=mal.length?mal:vs;
+    VOICEMAP.STARLA=anyF[0];
+    VOICEMAP.COSMO =anyM[0%anyM.length];
+    VOICEMAP.SONNY =anyM[1%anyM.length];
+    VOICEMAP.REG   =anyM[2%anyM.length];
+    VOICEMAP.SAL   =anyM[3%anyM.length];
+  }catch(e){}
+}
+if('speechSynthesis' in window){ pickVoices(); speechSynthesis.onvoiceschanged=pickVoices; }
+function speak(name,text){
+  if(!voicesOn || !('speechSynthesis' in window)) return;
+  try{
+    speechSynthesis.cancel();
+    const u=new SpeechSynthesisUtterance(text);
+    const prof=VPROF[name]||{p:1,r:1};
+    u.pitch=prof.p; u.rate=prof.r; u.volume=0.95;
+    if(VOICEMAP[name]) u.voice=VOICEMAP[name];
+    speechSynthesis.speak(u);
+  }catch(e){}
+}
+$('voiceBtn').onclick=function(){
+  voicesOn=!voicesOn; this.classList.toggle('off',!voicesOn);
+  if(!voicesOn){ try{speechSynthesis.cancel();}catch(e){} }
+};
+
+let bubTimers={};
+function speakLine(i,text){
+  const el=$('bub'+i); if(!el) return;
+  el.textContent=text;
+  el.classList.add('show');
+  clearTimeout(bubTimers[i]);
+  bubTimers[i]=setTimeout(()=>el.classList.remove('show'), 6500);
+  speak(P[i].name, text);
+}
+/* dialogue decks: shuffle each character's lines and deal them out —
+   no line repeats until the whole deck has been used */
+const LINE_BAGS={}, LAST_LINE={};
+function drawLine(key,lines){
+  if(lines.length===1) return lines[0];
+  let bag=LINE_BAGS[key];
+  if(!bag||!bag.length){
+    bag=lines.map((_,ix)=>ix);
+    for(let a=bag.length-1;a>0;a--){ const b=Math.floor(Math.random()*(a+1)); [bag[a],bag[b]]=[bag[b],bag[a]]; }
+    if(bag[bag.length-1]===LAST_LINE[key]){ [bag[0],bag[bag.length-1]]=[bag[bag.length-1],bag[0]]; }
+    LINE_BAGS[key]=bag;
+  }
+  const ix=bag.pop();
+  LAST_LINE[key]=ix;
+  return lines[ix];
+}
+const EMO={win:'happy',allin:'happy',lose:'sad',badbeat:'sad',busted:'sad'};
+const emoTimers={};
+function setEmotion(i,em){
+  const el=$('seat'+i); if(!el) return;
+  el.classList.remove('happy','sad');
+  if(em){ el.classList.add(em);
+    clearTimeout(emoTimers[i]);
+    emoTimers[i]=setTimeout(()=>el.classList.remove('happy','sad'), 4200); }
+}
+function say(i,cat){
+  const p=P[i]; if(!p||p.human) return false;
+  const lines=p.talk[cat]; if(!lines) return false;
+  if(EMO[cat]) setEmotion(i, EMO[cat]);
+  speakLine(i, drawLine(p.name+':'+cat, lines));
+  /* someone at the table may react to what was just said */
+  const opts=REACTIONS[p.name+':'+cat];
+  if(opts && Math.random()<0.55){
+    const pick=opts[Math.floor(Math.random()*opts.length)];
+    const j=P.findIndex(q=>q.name===pick.who);
+    if(j>0 && P[j].playing){
+      setTimeout(()=>speakLine(j,pick.line), 2400);
+    }
+  }
+  return true;
+}
+function maybeSay(i,cat,prob){ if(Math.random()<prob) return say(i,cat); return false; }
+
+let sessStartBank=0;
+function startPoker(m, venueIdx){
+  session++;
+  sessStartBank=bank;
+  mode=m; venue=VENUES[venueIdx]; setVenueScene(venue);
+  handCount=0; tourneyLevel=0; lastLvl=0; curSBi=-1; curBBi=-1; dealerIdx=Math.floor(Math.random()*4);
+  $('venueName').textContent = (m==='tourney'?'Tournament — ':'')+venue.name;
+  P=[
+    {human:true, name:'YOU', color:'#4de8c2', chips:0},
+    ...CAST.map(c=>({human:false, name:c.name, color:c.color, style:c.style, talk:c.talk, chips:0, busted:false}))
+  ];
+  if(m==='tourney'){ P.forEach(p=>p.chips=2000); }
+  else{ P[0].chips=bank; P.slice(1).forEach(p=>p.chips=Math.max(venue.bb*60, Math.round(bank*0.8+venue.bb*20))); }
+  $('charRow').innerHTML = P.slice(1).map((p,i)=>seatHTML(p,i+1)).join('');
+  show('poker');
+  pokerLoop(session);
+}
+function leaveTable(){
+  session++;                      // aborts any running loop
+  try{ speechSynthesis.cancel(); }catch(e){}
+  if(mode==='casual' && handCount>0){
+    const d=bank-sessStartBank;
+    toast('Tonight: '+(d>=0?'up ':'down ')+money(Math.abs(d))+' over '+handCount+' hand'+(handCount>1?'s':''));
+  }
+  renderLobby(); show('lobby');
+}
+
+function blinds(){
+  if(mode==='casual') return {sb:venue.sb, bb:venue.bb};
+  const lvl=Math.floor(handCount/10);
+  const base=[[10,20],[15,30],[25,50],[40,80],[75,150],[125,250],[200,400],[300,600]];
+  const b=base[Math.min(lvl,base.length-1)];
+  return {sb:b[0], bb:b[1]};
+}
+
+async function pokerLoop(myS){
+  try{
+    while(true){
+      if(myS!==session) return;
+      /* casual: AIs quietly re-buy if felted; you get comped at zero */
+      if(mode==='casual'){
+        P.slice(1).forEach(p=>{ if(p.chips<venue.bb*4) p.chips+=venue.bb*80; });
+        if(P[0].chips<venue.bb){
+          bank=Math.max(0,P[0].chips); save();
+          gameOver();
+          return;
+        }
+      }else{
+        const alive=P.filter(p=>p.chips>0);
+        if(alive.length===1){
+          if(alive[0].human){
+            tourneyWins++; bank+=500; save();
+            confetti(90,true); sfx('win');
+            checkTrophies();
+            overlay('CHAMPION! 🏆','You took the whole table! The band demands a rematch. +$500 added to your bankroll.<br><br>Tournament record: <b>'+tourneyWins+' won / '+(stats.tLoss||0)+' lost</b>',()=>leaveTable(),
+              'I just won the whole tournament in X-Ray Star: Poker Night! 🏆🍾 Beat the band yourself:');
+          }else{
+            stats.tLoss=(stats.tLoss||0)+1; save();
+            overlay('Eliminated',''+alive[0].name+' takes the tournament. '+alive[0].name+' will absolutely bring this up at rehearsal.<br><br>Tournament record: <b>'+tourneyWins+' won / '+stats.tLoss+' lost</b>',()=>leaveTable());
+          }
+          return;
+        }
+        if(P[0].chips<=0){
+          const leader=P.slice(1).sort((a,b)=>b.chips-a.chips)[0];
+          stats.tLoss=(stats.tLoss||0)+1; save();
+          overlay('Busted out','You\'re out of the tournament. '+leader.name+' is currently the chip leader — and insufferable about it.<br><br>Tournament record: <b>'+tourneyWins+' won / '+stats.tLoss+' lost</b>',()=>leaveTable());
+          return;
+        }
+      }
+      await playHand(myS);
+      if(myS!==session) return;
+      /* tournament: newly busted characters give an exit speech and stay to heckle */
+      if(mode==='tourney'){
+        P.slice(1).forEach((p,ix)=>{
+          if(p.chips<=0 && !p.busted){ p.busted=true; say(ix+1,'busted'); }
+        });
+      }
+      handCount++;
+      checkUnlocks(); updateHdr();
+      /* wait for Next Hand */
+      await waitNext(myS);
+    }
+  }catch(e){ /* session aborted */ }
+}
+function waitNext(myS){
+  return new Promise(res=>{
+    const b=$('btnNext'); b.style.display='block';
+    const bg=$('btnBrag');
+    if(pendingBrag){ bg.style.display='block'; bg.onclick=()=>brag(pendingBrag); }
+    ['btnFold','btnCall','btnRaise'].forEach(id=>$(id).style.display='none');
+    b.onclick=()=>{ b.style.display='none'; bg.style.display='none'; pendingBrag=null;
+      ['btnFold','btnCall','btnRaise'].forEach(id=>$(id).style.display='block');
+      res(); };
+    /* if session dies, resolve harmlessly on next click anyway */
+  });
+}
+
+function inHand(){ return P.filter(p=>p.inHand); }
+let lastBoardLen=0, lastHoleKey='';
+const PLACE=['🥇','🥈','🥉','4th','5th'];
+function renderAll(showdown){
+  if(!P.length || !$('nm1')) return;
+  /* current standings by chip count */
+  const order=P.map((_,i)=>i).sort((a,b)=>P[b].chips-P[a].chips);
+  const place={}; order.forEach((pi,ix)=>place[pi]=ix);
+  P.slice(1).forEach((p,ix)=>{
+    const i=ix+1;
+    $('nm'+i).innerHTML=p.name+(i===dealerIdx?' <span class="dbtn">D</span>':'')+
+      (i===curSBi?' <span class="dbtn" style="background:#8fd0ff">S</span>':'')+
+      (i===curBBi?' <span class="dbtn" style="background:#ff9ad5">B</span>':'');
+    $('chips'+i).textContent=p.busted?'—':(PLACE[place[i]]+' '+money(p.chips));
+    $('bet'+i).textContent=p.busted?'OUT':(p.bet>0?('bet '+money(p.bet)):(p.allin?'ALL IN':''));
+    const seat=$('seat'+i);
+    seat.classList.toggle('folded', (p.playing&&!p.inHand)||p.busted);
+    const mc=$('mini'+i);
+    if(!p.playing){ mc.innerHTML=''; }
+    else if(showdown&&p.inHand){
+      mc.innerHTML=p.hole.map(c=>{
+        const red=(c.s==='♥'||c.s==='♦');
+        return '<div class="mini face '+(red?'red':'blk')+'">'+RSTR[c.r]+c.s+'</div>';
+      }).join('');
+    }else if(p.inHand){ mc.innerHTML='<div class="mini back">★</div><div class="mini back">★</div>'; }
+    else mc.innerHTML='';
+  });
+  /* community cards: only newly dealt cards animate in */
+  $('community').innerHTML=board.map(c=>cardHTML(c)).join('')||'';
+  const kids=$('community').children;
+  for(let k=lastBoardLen;k<board.length;k++){ if(kids[k]) kids[k].classList.add('dealIn'); }
+  lastBoardLen=board.length;
+
+  const pot=P.reduce((s,p)=>s+(p.total||0),0);
+  $('potLine').innerHTML = pot>0 ? '<span class="chips3"></span> Pot: '+money(pot) : '';
+  const me=P[0];
+  /* your cards: only rebuild when they actually change, so they don't flicker */
+  const holeKey = me.playing&&me.hole ? (RSTR[me.hole[0].r]+me.hole[0].s+RSTR[me.hole[1].r]+me.hole[1].s) : '';
+  if(holeKey!==lastHoleKey){
+    $('myCards').innerHTML = holeKey ? me.hole.map(c=>cardHTML(c,true)).join('') : '';
+    if(holeKey){ [...$('myCards').children].forEach(el=>el.classList.add('dealIn')); }
+    lastHoleKey=holeKey;
+  }
+  /* hand helper: computed first, rendered inside the same proven line below */
+  let hint='';
+  try{
+    if(helperOn && me.playing && me.inHand && me.hole){
+      if(board.length===0){
+        const a=me.hole[0], b=me.hole[1];
+        if(a.r===b.r) hint='a Pair of '+RWORD[a.r]+'s';
+        else{ const hi=Math.max(a.r,b.r), lo=Math.min(a.r,b.r);
+          hint=RWORD[hi]+'-'+RWORD[lo]+(a.s===b.s?' suited':''); }
+      }else hint=handName(best7([...me.hole,...board]));
+      if(diff<2){                       /* win odds: off in Serious Business */
+        try{ const o=winOdds(); if(o!==null) hint+=' · ~'+o+'% win chance'; }catch(e){}
+      }
+    }
+  }catch(e){ hint=''; }
+  $('myInfo').innerHTML=
+    (hint?'<div style="color:var(--gold);font-size:14.5px;margin-bottom:3px">You have: '+hint+'</div>':'')+
+    PLACE[place[0]]+' · Your chips: <b>'+money(me.chips)+'</b>'+
+    (dealerIdx===0?' · <span class="yb">Ⓓ dealer</span>':'')+
+    (curSBi===0?' · <span class="yb">small blind</span>':'')+
+    (curBBi===0?' · <span class="yb">big blind</span>':'')+
+    (me.bet>0?' · <span class="yb">bet '+money(me.bet)+'</span>':'')+(me.allin?' · <span class="yb">ALL IN</span>':'');
+}
+/* estimate win chance by silently playing out hundreds of random futures */
+let oddsCache={key:'',val:null};
+function winOdds(){
+  const me=P[0]; if(!me.hole) return null;
+  const opps=inHand().length-1; if(opps<1) return null;
+  const key=lastHoleKey+'|'+board.length+'|'+opps;
+  if(oddsCache.key===key) return oddsCache.val;
+  const used={}; [...me.hole,...board].forEach(c=>used[c.r+c.s]=1);
+  const rem=[];
+  for(const s of SUITS) for(let r=2;r<=14;r++){ if(!used[r+s]) rem.push({r,s}); }
+  let score=0; const N=220;
+  for(let t=0;t<N;t++){
+    const need=opps*2+(5-board.length);
+    for(let i=0;i<need;i++){ const j=i+Math.floor(Math.random()*(rem.length-i)); const tmp=rem[i]; rem[i]=rem[j]; rem[j]=tmp; }
+    let idx=5-board.length;
+    const fullBoard=board.concat(rem.slice(0,idx));
+    const myR=best7(me.hole.concat(fullBoard));
+    let res=1;
+    for(let o=0;o<opps;o++){
+      const c=cmpRank(best7([rem[idx++],rem[idx++]].concat(fullBoard)), myR);
+      if(c>0){ res=0; break; } else if(c===0) res=Math.min(res,0.5);
+    }
+    score+=res;
+  }
+  const pct=Math.round(score/N*100);
+  oddsCache={key,val:pct};
+  return pct;
+}
+function setMsg(t,gold){ const el=$('msg'); el.textContent=t; el.style.color=gold?'var(--gold)':''; el.style.fontWeight=gold?'700':''; }
+
+async function playHand(myS){
+  const {sb,bb}=blinds();
+  deck=newDeck(); board=[]; lastBoardLen=0; lastHoleKey=''; pendingBrag=null; lastBoardLen=0; lastHoleKey='';
+  P.forEach(p=>{ p.playing=p.chips>0; p.inHand=p.playing; p.hole=null; p.bet=0; p.total=0; p.allin=false; p.acted=false; });
+  const seats=P.map((p,i)=>i).filter(i=>P[i].playing);
+  if(seats.length<2) return;
+  /* rotate dealer among the living */
+  do{ dealerIdx=(dealerIdx+1)%P.length; }while(!P[dealerIdx].playing);
+  const order=[]; for(let k=1;k<=P.length;k++){ const i=(dealerIdx+k)%P.length; if(P[i].playing) order.push(i); }
+  const headsUp = seats.length===2;
+  const sbI = headsUp? dealerIdx : order[0];
+  const bbI = headsUp? order[0] : order[1];
+  curSBi=sbI; curBBi=bbI;
+  const firstPre = headsUp? dealerIdx : (order[2]!==undefined?order[2]:order[0]);
+  if(mode==='tourney'){
+    const lvl=Math.floor(handCount/10);
+    if(lvl>lastLvl){ lastLvl=lvl; toast('Blinds up! Now '+money(sb)+' / '+money(bb)); }
+  }
+
+  /* deal */
+  P.forEach(p=>{ if(p.playing) p.hole=[deck.pop(),deck.pop()]; });
+  sfx('card');
+  postBlind(sbI,sb); postBlind(bbI,bb);
+  if(mode==='tourney') setMsg('Blinds '+money(sb)+' / '+money(bb));
+  else setMsg('New hand. Blinds '+money(sb)+' / '+money(bb));
+  if(P[0].playing) stats.hands++;
+  let anyChat=false;
+  const trait=playerTrait();
+  if(trait && Math.random()<0.25){
+    const cand=[]; P.slice(1).forEach((p,ix)=>{ if(p.playing) cand.push(ix+1); });
+    if(cand.length) anyChat = say(cand[Math.floor(Math.random()*cand.length)], trait) || anyChat;
+  }
+  if(!anyChat) P.slice(1).forEach((p,ix)=>{ if(p.playing && maybeSay(ix+1,'idle',0.16)) anyChat=true; });
+  /* railbirds: the eliminated stay to heckle */
+  P.slice(1).forEach((p,ix)=>{ if(p.busted && maybeSay(ix+1,'rail',0.14)) anyChat=true; });
+  renderAll(false);
+  await sleep(anyChat?2600:700); if(myS!==session) throw 0;
+
+  let res=await street(myS, firstPre, bb, bb);
+  if(res!=='done'){
+    board.push(deck.pop(),deck.pop(),deck.pop()); sfx('card'); renderAll(false);
+    setMsg('The flop.');
+    res=await street(myS, firstAfter(dealerIdx), 0, bb);
+  }
+  if(res!=='done'){
+    board.push(deck.pop()); sfx('card'); renderAll(false);
+    setMsg('The turn.');
+    res=await street(myS, firstAfter(dealerIdx), 0, bb);
+  }
+  if(res!=='done'){
+    board.push(deck.pop()); sfx('card'); renderAll(false);
+    setMsg('The river.');
+    res=await street(myS, firstAfter(dealerIdx), 0, bb);
+  }
+  await showdown(myS, res==='done');
+  if(mode==='casual'){ bank=P[0].chips; save(); }
+}
+function firstAfter(d){
+  for(let k=1;k<=P.length;k++){ const i=(d+k)%P.length; if(P[i].inHand&&!P[i].allin) return i; }
+  return -1;
+}
+function postBlind(i,amt){
+  const p=P[i]; const a=Math.min(amt,p.chips);
+  p.chips-=a; p.bet+=a; p.total+=a;
+  if(p.chips===0) p.allin=true;
+}
+
+async function street(myS, firstI, startBet, bb){
+  let currentBet=startBet, minRaise=bb, lastRaiser=-1;
+  P.forEach(p=>p.acted=false);
+  if(inHand().length<2) return 'done';
+  let idx=firstI;
+  let guard=0;
+  while(true){
+    if(myS!==session) throw 0;
+    if(guard++>200) break;
+    const actors=P.filter(p=>p.inHand&&!p.allin);
+    const pending=actors.filter(p=>!p.acted||p.bet<currentBet);
+    if(inHand().length<2) return 'done';
+    if(actors.length===0 || pending.length===0) break;
+    /* find next pending actor from idx */
+    let found=-1;
+    for(let k=0;k<P.length;k++){
+      const i=(idx+k)%P.length; const p=P[i];
+      if(p.inHand&&!p.allin&&(!p.acted||p.bet<currentBet)){ found=i; break; }
+    }
+    if(found<0) break;
+    const i=found; const p=P[i];
+    highlightTurn(i);
+    let act, spoke=false;
+    if(p.human){ act=await humanAct(myS,p,currentBet,minRaise,bb);
+      if(act.type==='fold') stats.folds++;
+      else if(act.type==='raise') stats.raises++;
+      else stats.calls++;
+    }
+    else{ await sleep(900+Math.random()*800); if(myS!==session) throw 0;
+      act=aiAct(i,p,currentBet,minRaise,bb); }
+    if(act.type==='fold'){
+      p.inHand=false; p.acted=true;
+      if(!p.human) spoke=maybeSay(i,'fold',0.5); 
+      setMsg(p.name+' folds.');
+      if(inHand().length===1){ highlightTurn(-1); renderAll(false); return 'done'; }
+    }else if(act.type==='call'){
+      const need=Math.min(currentBet-p.bet,p.chips);
+      p.chips-=need; p.bet+=need; p.total+=need;
+      if(p.chips===0){ p.allin=true; if(!p.human) spoke=maybeSay(i,'allin',0.8); }
+      p.acted=true; sfx('chip');
+      setMsg(p.name+(need===0?' checks.':' calls '+money(need)+'.'));
+    }else{ /* raise to act.to */
+      const to=Math.min(act.to, p.bet+p.chips);
+      const add=to-p.bet;
+      p.chips-=add; p.bet=to; p.total+=add;
+      minRaise=Math.max(minRaise, to-currentBet);
+      currentBet=to; lastRaiser=i;
+      if(p.chips===0){ p.allin=true; if(!p.human) spoke=maybeSay(i,'allin',0.85); }
+      else if(!p.human) spoke=maybeSay(i,'raise',0.45);
+      P.forEach(q=>{ if(q!==p) q.acted=false; });
+      p.acted=true; sfx('chip');
+      setMsg(p.name+' raises to '+money(to)+'.');
+    }
+    renderAll(false);
+    if(spoke){ await sleep(2200); if(myS!==session) throw 0; }
+    idx=i+1;
+  }
+  highlightTurn(-1);
+  P.forEach(p=>{ p.bet=0; p.acted=false; });
+  renderAll(false);
+  await sleep(400); if(myS!==session) throw 0;
+  return 'go';
+}
+function highlightTurn(i){
+  P.slice(1).forEach((p,ix)=>$('seat'+(ix+1)).classList.toggle('turn', ix+1===i));
+}
+
+/* ---------------- human action ---------------- */
+function humanAct(myS,p,currentBet,minRaise,bb){
+  return new Promise(res=>{
+    sfx('turn');
+    awaitingHuman=true;
+    const toCall=currentBet-p.bet;
+    $('btnCall').textContent = toCall<=0?'Check':(toCall>=p.chips?('All-In '+money(p.chips)):('Call '+money(toCall)));
+    $('btnRaise').disabled = p.chips<=toCall;
+    $('btnFold').disabled=false; $('btnCall').disabled=false;
+    lastPrompt = toCall>0?('It\'s '+money(toCall)+' to you.'):'Your move.';
+    setMsg(lastPrompt);
+    const clean=()=>{ awaitingHuman=false; $('btnFold').onclick=$('btnCall').onclick=$('btnRaise').onclick=null;
+      $('raiseRow').classList.remove('on'); };
+    $('btnFold').onclick=()=>{ sfx('tick'); clean(); res({type:'fold'}); };
+    $('btnCall').onclick=()=>{ sfx('tick'); clean(); res({type:'call'}); };
+    $('btnRaise').onclick=()=>{ sfx('tick'); $('raiseRow').classList.add('on'); };
+    document.querySelectorAll('.rop').forEach(b=>{
+      b.onclick=()=>{
+        const pot=P.reduce((s,q)=>s+q.total,0);
+        let to;
+        const t=b.dataset.r;
+        if(t==='x'){ $('raiseRow').classList.remove('on'); return; }
+        if(t==='min') to=currentBet+minRaise;
+        else if(t==='half') to=currentBet+Math.max(minRaise,Math.round((pot+ (currentBet-p.bet))*0.5));
+        else if(t==='pot') to=currentBet+Math.max(minRaise,pot+(currentBet-p.bet));
+        else to=p.bet+p.chips;
+        to=Math.min(to, p.bet+p.chips);
+        to=Math.max(to, Math.min(currentBet+minRaise, p.bet+p.chips));
+        clean(); res({type:'raise',to});
+      };
+    });
+  });
+}
+
+/* ---------------- AI ---------------- */
+function aiStrength(p){
+  const [a,b]=p.hole;
+  if(board.length===0){
+    let s=(a.r+b.r)/28*0.5;
+    if(a.r===b.r) s+=0.28;
+    if(a.s===b.s) s+=0.07;
+    if(Math.abs(a.r-b.r)===1) s+=0.05;
+    if(a.r>=11&&b.r>=11) s+=0.12;
+    return Math.min(0.95,s);
+  }
+  const r=best7([...p.hole,...board]);
+  const boardMax=Math.max(...board.map(c=>c.r));
+  let s;
+  switch(r[0]){
+    case 0: s=0.10+r[1]/140; break;
+    case 1: s=0.32+(r[1]>=boardMax?0.12:0)+r[1]/200; break;
+    case 2: s=0.58; break;
+    case 3: s=0.70; break;
+    case 4: s=0.80; break;
+    case 5: s=0.86; break;
+    case 6: s=0.92; break;
+    default:s=0.97;
+  }
+  if(board.length<5){
+    const suits={}; [...p.hole,...board].forEach(c=>suits[c.s]=(suits[c.s]||0)+1);
+    if(Object.values(suits).some(n=>n===4)) s+=0.12;
+  }
+  return Math.min(0.97,s);
+}
+const DIFFS=[
+  {noise:0.22, aggrM:0.5,  bluffM:0.4,  edge:-0.08},  /* friendly: sloppy, pays you off */
+  {noise:0.13, aggrM:0.92, bluffM:0.95, edge:-0.01},  /* house rules: a fair fight */
+  {noise:0.05, aggrM:1.25, bluffM:1.3,  edge:0.05}    /* serious: sharp and punishing */
+];
+function aiAct(i,p,currentBet,minRaise,bb){
+  const st=p.style, D=DIFFS[diff]||DIFFS[1];
+  const aggr=Math.min(0.95, st.aggr*D.aggrM);
+  const bluff=st.bluff*D.bluffM;
+  const pot=P.reduce((s,q)=>s+q.total,0)||bb;
+  const toCall=currentBet-p.bet;
+  let s=aiStrength(p) + (Math.random()*D.noise-D.noise/2) - st.tight*0.08;
+  const potOdds= toCall>0 ? toCall/(pot+toCall) : 0;
+  const raiseTo=()=> {
+    const target=currentBet + Math.max(minRaise, Math.round((pot*0.55)/bb)*bb || minRaise);
+    return {type:'raise', to:Math.min(target, p.bet+p.chips)};
+  };
+  if(toCall<=0){
+    if(s>0.62 && Math.random()<aggr) return raiseTo();
+    if(s<0.35 && Math.random()<bluff*0.6) return raiseTo();
+    return {type:'call'};        // check
+  }
+  if(toCall>=p.chips){           // decision for stack
+    return s>0.62+st.tight*0.15+D.edge ? {type:'call'} : {type:'fold'};
+  }
+  if(s>0.78 && Math.random()<aggr) return raiseTo();
+  if(s>potOdds+st.tight*0.18+D.edge) return {type:'call'};
+  if(Math.random()<bluff*0.35) return raiseTo();
+  return {type:'fold'};
+}
+
+/* ---------------- showdown ---------------- */
+async function showdown(myS, earlyWin){
+  const live=inHand();
+  if(earlyWin && live.length===1){
+    const w=live[0];
+    const pot=P.reduce((s,p)=>s+p.total,0);
+    w.chips+=pot;
+    P.forEach(p=>p.total=0);
+    setMsg(w.name+' takes '+money(pot)+' — everyone folded.', w.human);
+    if(!w.human){ say(P.indexOf(w),'win'); } else { streak=streak>0?streak+1:1; stats.won++; if(pot>stats.bigPot)stats.bigPot=pot; sfx('win'); P.slice(1).forEach((p,ix)=>maybeSay(ix+1,'playerWin',0.35)); }
+    renderAll(false);
+    save();
+    return;
+  }
+  /* run out remaining board slowly — let the drama breathe */
+  while(board.length<5){
+    const nm=board.length<3?'flop':(board.length===3?'turn':'river');
+    setMsg('Dealing the '+nm+'…');
+    await sleep(950); if(myS!==session) throw 0;
+    board.push(deck.pop()); renderAll(false); sfx('card');
+    await sleep(950); if(myS!==session) throw 0;
+  }
+  renderAll(true);
+  const ranks={};
+  live.forEach(p=>ranks[P.indexOf(p)]=best7([...p.hole,...board]));
+  const pots=buildPots(P.map((p,i)=>({i,total:p.total,folded:!p.inHand})));
+  P.forEach(p=>p.total=0);
+  let mainMsg='';
+  pots.forEach((pot,pi)=>{
+    let best=null,winners=[];
+    pot.elig.forEach(i=>{
+      const r=ranks[i];
+      if(!best||cmpRank(r,best)>0){ best=r; winners=[i]; }
+      else if(cmpRank(r,best)===0) winners.push(i);
+    });
+    const share=Math.floor(pot.amt/winners.length);
+    winners.forEach((i,wi)=>P[i].chips+=share+(wi===0?pot.amt-share*winners.length:0));
+    if(pi===0){
+      if(winners.includes(0)) streak = streak>0 ? streak+1 : 1;
+      else if(P[0].inHand)    streak = streak<0 ? streak-1 : -1;
+      const names=winners.map(i=>P[i].name).join(' & ');
+      mainMsg=names+' win'+(winners.length>1?'':'s')+' '+money(pot.amt)+' with '+handName(best);
+      if(winners.includes(0)){
+        stats.won++;
+        if(pot.amt>stats.bigPot) stats.bigPot=pot.amt;
+        if(best[0]>stats.bestCat){ stats.bestCat=best[0]; stats.bestName=handName(best); }
+      }
+      if(best[0]>=6){   /* monster hand: golden moment */
+        mainMsg='★ '+mainMsg+' ★';
+        $('felt').classList.add('bigwin');
+        setTimeout(()=>$('felt').classList.remove('bigwin'),3400);
+        if(winners.includes(0)) confetti(55);
+      }
+      if(winners.includes(0) && (best[0]>=5 || pot.amt>=stats.bigPot && pot.amt>500)){
+        pendingBrag='I just won '+money(pot.amt)+' with '+handName(best)+' against the band in X-Ray Star: Poker Night!';
+      }
+      winners.forEach(i=>{
+        if(P[i].human){ sfx('win'); P.slice(1).forEach((p,ix)=>{ if(P[ix+1].playing) maybeSay(ix+1,'playerWin',0.5); }); }
+        else say(i,'win');
+      });
+      live.forEach(p=>{ const i=P.indexOf(p);
+        if(!winners.includes(i)&&!p.human){
+          if(ranks[i][0]>=5) maybeSay(i,'badbeat',0.85);   /* lost with a huge hand — agony */
+          else maybeSay(i,'lose',0.45);
+        }});
+    }
+  });
+  setMsg(mainMsg, mainMsg.indexOf('YOU')===0||mainMsg.indexOf('★ YOU')===0);
+  renderAll(true);
+  save();
+  checkTrophies();
+}
+
+/* ==========================================================
+   BLACKJACK — The Wild Card Room
+   ========================================================== */
+let bjShoe=[], bjBet=0, bjPlayer=[], bjDealer=[], bjBusy=false;
+function bjVal(hand){
+  let v=0,aces=0;
+  hand.forEach(c=>{ if(c.r===14){v+=11;aces++;} else v+=Math.min(c.r,10); });
+  while(v>21&&aces>0){ v-=10; aces--; }
+  return v;
+}
+function salSay(cat){
+  const lines=SAL[cat]; if(!lines) return;
+  const el=$('bjBubble');
+  const line=drawLine('SAL:'+cat, lines);
+  el.textContent=line;
+  el.classList.add('show');
+  clearTimeout(bubTimers.sal);
+  bubTimers.sal=setTimeout(()=>el.classList.remove('show'),3800);
+  speak('SAL', line);
+}
+function startBJ(){
+  session++;
+  setFelt({felt:['#123a2b','#08130d']});
+  curSet='wild';
+  $('venueName').textContent='The Wild Card Room';
+  $('salFace').innerHTML='<svg viewBox="0 0 100 116">'+
+    '<ellipse cx="50" cy="112" rx="28" ry="4.5" fill="rgba(0,0,0,.45)"/>'+
+    '<path d="M16 116 Q16 90 50 88 Q84 90 84 116 Z" fill="#1c1c26"/>'+
+    '<path d="M42 90 L50 112 L58 90 L50 94 Z" fill="#e8e8ec"/>'+
+    '<path d="M44 92 L50 96 L56 92 L53 90 L47 90 Z" fill="#a02535"/>'+
+    '<path d="M34 93 L44 90 L41 106 Z" fill="#12121a"/><path d="M66 93 L56 90 L59 106 Z" fill="#12121a"/>'+
+    '<rect x="44" y="72" width="12" height="20" fill="#d9a67f"/>'+
+    '<ellipse cx="50" cy="52" rx="23" ry="27" fill="#e0b088"/>'+
+    '<path d="M28 40 Q30 21 50 20 Q70 21 72 40 Q66 27 50 26 Q34 27 28 40 Z" fill="#23201c"/>'+
+    '<path d="M34 30 Q42 26 52 26" stroke="#3d3831" stroke-width="1.5" fill="none" opacity=".7"/>'+
+    '<path d="M34 46 L45 48" stroke="#23201c" stroke-width="2.6" stroke-linecap="round"/>'+
+    '<path d="M66 46 L55 48" stroke="#23201c" stroke-width="2.6" stroke-linecap="round"/>'+
+    '<circle cx="41" cy="53" r="2.3" fill="#23201c"/><circle cx="59" cy="53" r="2.3" fill="#23201c"/>'+
+    '<path d="M50 55 Q52 61 49 63" stroke="#b98a5e" stroke-width="2" fill="none" stroke-linecap="round"/>'+
+    '<path d="M40 68 Q50 65 60 68" stroke="#23201c" stroke-width="2.2" fill="none" stroke-linecap="round"/>'+
+    '<path d="M42 74 Q50 78 58 73" stroke="#8a5a3f" stroke-width="2.6" fill="none" stroke-linecap="round"/></svg>';
+  show('blackjack');
+  if(bjShoe.length<60) bjShoe=newDeck(4);
+  bjBetUI();
+  if(Math.random()<0.4) salSay('idle');
+}
+function bjRecord(){ return (stats.bjW||0)+'W–'+(stats.bjL||0)+'L–'+(stats.bjP||0)+'P'; }
+function bjBetUI(){
+  if(bjBank<10){
+    stats.bjBusts=(stats.bjBusts||0)+1; save();
+    overlay('Cleaned Out',
+      'Sal sweeps the felt. The house stake is gone.<br><br>'+bjRecord()+'<br>Shoes busted: <b>'+stats.bjBusts+'</b>',
+      ()=>{ bjBank=2000; save(); bjBetUI(); }, null, false, 'Buy Back In ($2,000)');
+    return;
+  }
+  bjPlayer=[];bjDealer=[];bjBet=0;bjBusy=false;
+  $('bjDealerCards').innerHTML=''; $('bjMyCards').innerHTML='';
+  $('bjVal').textContent=''; $('bjDealerVal').textContent='';
+  $('bjMsg').textContent='Place your bet. House chips: '+money(bjBank)+' · '+bjRecord();
+  const A=$('bjActions'); A.innerHTML='';
+  [10,25,100,500].forEach(v=>{
+    const b=document.createElement('button');
+    b.className='act'; b.style.background='linear-gradient(135deg,#8ff0da,#4de8c2)';
+    b.textContent='Bet $'+v;
+    b.disabled=bjBank<v;
+    b.onclick=()=>bjDeal(v);
+    A.appendChild(b);
+  });
+}
+function bjRender(hideHole){
+  $('bjMyCards').innerHTML=bjPlayer.map(c=>cardHTML(c)).join('');
+  $('bjDealerCards').innerHTML=bjDealer.map((c,i)=> (i===1&&hideHole)?CARD_BACK:cardHTML(c)).join('');
+  $('bjVal').textContent=bjPlayer.length?('= '+bjVal(bjPlayer)):'';
+  $('bjDealerVal').textContent=bjDealer.length? (hideHole?('showing '+bjVal([bjDealer[0]])):('= '+bjVal(bjDealer))) :'';
+}
+async function bjDeal(v){
+  if(bjBusy) return; bjBusy=true;
+  if(bjShoe.length<20) bjShoe=newDeck(4);
+  bjBet=v; bjBank-=v; updateHdr(); sfx('chip');
+  bjPlayer=[bjShoe.pop(),bjShoe.pop()];
+  bjDealer=[bjShoe.pop(),bjShoe.pop()];
+  sfx('card');
+  bjRender(true);
+  salSay('deal');
+  $('bjMsg').textContent='Bet: '+money(v);
+  const pv=bjVal(bjPlayer), dv=bjVal(bjDealer);
+  if(pv===21||dv===21){
+    await sleep(800); bjRender(false);
+    if(pv===21&&dv===21){ bjBank+=bjBet; stats.bjP=(stats.bjP||0)+1; $('bjMsg').textContent='Both blackjack — push.'; salSay('push'); }
+    else if(pv===21){ const winA=Math.floor(bjBet*2.5); bjBank+=winA; stats.bjW=(stats.bjW||0)+1; sfx('win'); $('bjMsg').textContent='BLACKJACK! You win '+money(winA-bjBet)+'.'; salSay('playerBJ'); }
+    else { stats.bjL=(stats.bjL||0)+1; $('bjMsg').textContent='Dealer has blackjack. House takes it.'; salSay('win'); }
+    endBJHand(); return;
+  }
+  bjActionsUI();
+}
+let bjLock=0;
+function bjGuarded(){ if(Date.now()<bjLock) return true; bjLock=Date.now()+320; return false; }
+function bjActionsUI(){
+  bjLock=Date.now()+380;      /* brief guard while buttons appear under your finger */
+  const A=$('bjActions'); A.innerHTML='';
+  const mk=(label,bg,fn,dis)=>{ const b=document.createElement('button'); b.className='act';
+    b.style.background=bg; b.textContent=label; b.disabled=!!dis; b.onclick=fn; A.appendChild(b); };
+  mk('Hit','linear-gradient(135deg,#8ff0da,#4de8c2)',bjHit);
+  mk('Double','linear-gradient(135deg,#cfc4ff,#a58bff)',bjDouble, bjPlayer.length!==2||bjBank<bjBet);
+  mk('Stand','linear-gradient(135deg,#ffd268,#ffb347)',bjStand);
+}
+async function bjHit(){
+  if(bjGuarded()) return;
+  bjPlayer.push(bjShoe.pop()); sfx('card'); bjRender(true);
+  if(bjVal(bjPlayer)>21){
+    $('bjActions').innerHTML='';
+    await sleep(500); bjRender(false);
+    stats.bjL=(stats.bjL||0)+1; $('bjMsg').textContent='Bust! House takes '+money(bjBet)+'.';
+    salSay('playerBust'); endBJHand();
+  }else if(bjVal(bjPlayer)===21){ bjStand(true); }
+}
+async function bjDouble(){
+  if(bjGuarded()) return;
+  bjBank-=bjBet; bjBet*=2; updateHdr(); sfx('chip');
+  bjPlayer.push(bjShoe.pop()); sfx('card'); bjRender(true);
+  if(bjVal(bjPlayer)>21){
+    $('bjActions').innerHTML='';
+    await sleep(500); bjRender(false);
+    stats.bjL=(stats.bjL||0)+1; $('bjMsg').textContent='Doubled... and bust. Ouch. House takes '+money(bjBet)+'.';
+    salSay('playerBust'); endBJHand();
+  }else bjStand(true);
+}
+async function bjStand(force){
+  if(!force && bjGuarded()) return;
+  $('bjActions').innerHTML='';
+  bjRender(false);
+  await sleep(650);
+  while(bjVal(bjDealer)<17){
+    bjDealer.push(bjShoe.pop()); sfx('card'); bjRender(false); await sleep(700);
+  }
+  const pv=bjVal(bjPlayer), dv=bjVal(bjDealer);
+  if(dv>21){ bjBank+=bjBet*2; stats.bjW=(stats.bjW||0)+1; sfx('win'); $('bjMsg').textContent='Dealer busts! You win '+money(bjBet)+'.'; salSay('dealerBust'); }
+  else if(pv>dv){ bjBank+=bjBet*2; stats.bjW=(stats.bjW||0)+1; sfx('win'); $('bjMsg').textContent='You win '+money(bjBet)+'! ('+pv+' vs '+dv+')'; salSay('lose'); }
+  else if(pv<dv){ stats.bjL=(stats.bjL||0)+1; $('bjMsg').textContent='House wins, '+dv+' to '+pv+'.'; salSay('win'); }
+  else{ bjBank+=bjBet; stats.bjP=(stats.bjP||0)+1; $('bjMsg').textContent='Push at '+pv+'.'; salSay('push'); }
+  endBJHand();
+}
+function endBJHand(){
+  bjLock=Date.now()+500;
+  updateHdr(); save();
+  const A=$('bjActions'); A.innerHTML='';
+  const b=document.createElement('button');
+  b.className='act'; b.style.background='linear-gradient(135deg,#ffd268,#ffb347)';
+  b.textContent='Deal Again';
+  b.onclick=bjBetUI;
+  A.appendChild(b);
+  bjBusy=false;
+}
+
+/* ---------------- boot ---------------- */
+load();
+initTrophies();
+applyDeck();
+renderLobby();
+renderSettings();
+updateHdr();
+</script>
+</body>
+</html>
