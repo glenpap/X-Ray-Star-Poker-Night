@@ -73,7 +73,25 @@
   #felt.bigwin{animation:feltGlow 3.2s ease-out}
   @media (prefers-reduced-motion: reduce){#felt.bigwin{animation:none}}
   #handHint{font-size:14.5px;color:var(--gold);min-height:20px;margin-top:2px}
-  #salFace svg{width:86px;filter:drop-shadow(0 4px 8px rgba(0,0,0,.5))}
+  #salFace svg{width:124px;filter:drop-shadow(0 4px 10px rgba(0,0,0,.55));animation:bob 4s ease-in-out infinite alternate}
+  #blackjack{position:relative;align-items:center}
+  #bjDecor{position:absolute;inset:0;pointer-events:none;overflow:hidden}
+  #bjDecor .suit{position:absolute;font-size:130px;color:rgba(255,255,255,.04);transform:rotate(-14deg)}
+  #bjSign{position:absolute;top:8px;left:50%;transform:translateX(-50%);z-index:3;
+    font-family:'Alfa Slab One',serif;font-size:15px;letter-spacing:.14em;color:#7de8ff;
+    text-shadow:0 0 12px rgba(125,232,255,.8),0 0 30px rgba(77,232,194,.5);white-space:nowrap}
+  #bjTable{
+    position:relative;z-index:2;width:min(94vw,660px);margin:44px auto 10px;flex:1 1 auto;
+    display:flex;flex-direction:column;min-height:0;
+    background:radial-gradient(ellipse at 50% 0%, #1b4d38, #0d2a1d 80%);
+    border:8px solid #6e4a26;border-radius:26px;
+    box-shadow:0 10px 40px rgba(0,0,0,.6), inset 0 0 60px rgba(0,0,0,.35);
+    padding:10px 8px 6px;
+  }
+  #bjTable::before{content:'♦ WILD CARD ♦';position:absolute;left:0;right:0;top:52%;
+    text-align:center;font-family:'Alfa Slab One',serif;font-size:clamp(16px,4vw,24px);
+    color:rgba(125,232,255,.09);letter-spacing:.3em;pointer-events:none}
+  #bjDealer,#bjMe,#bjActions{width:100%;max-width:640px;margin:0 auto}
 
 
   /* ============ card deck styles ============ */
@@ -419,6 +437,9 @@
 
 <!-- ============ BLACKJACK ============ -->
 <div id="blackjack" class="screen">
+  <div id="bjDecor"></div>
+  <div id="bjSign">THE WILD CARD ROOM</div>
+  <div id="bjTable">
   <div id="bjDealer">
     <div id="salFace"></div>
     <div class="lbl">Sal — the house</div>
@@ -433,6 +454,7 @@
     <div class="lbl">Your hand</div>
     <div id="bjMyCards"></div>
     <div id="bjVal"></div>
+  </div>
   </div>
   <div id="bjActions"></div>
 </div>
@@ -630,126 +652,123 @@ function buildPots(players){    // players: [{i, total, folded}]
 
 /* ---------------- the band — Glen's cast ---------------- */
 const CAST=[
-  { name:'COSMO', color:'#ffe08a', // drums: cosmic chaos + cheeky British mischief
+  { name:'COSMO', color:'#ffe08a', // drums: cosmic wanderer, cheeky trickster
     style:{tight:0.15,aggr:0.50,bluff:0.28},
     talk:{
-      raise:["Raise! The universe practically insists.","I'm vibing with this hand, man.","I'm putting chips on this. The vibes are structurally sound.","I once won a hand exactly like this in a dream. Possibly this dream.","Giddy up.","Sweeten the pot, man. Pots LOVE sweetening."],
-      win:["See? The universe rewards chill.","THAT'S the cosmos settling its tab.","Oh yes! Oh yes! The chips abide.","I'd explain my strategy, but then it would stop working. It's very quantum.","Lovely. Simply lovely. Carry on.","Ka-CHING, baby! That's the sound my soul makes.","The prophecy is fulfilled. There was a prophecy. I just wrote it."],
-      lose:["Ah. A lesson. I accept it.","Far out. In the bad way.","That's just, like, the deck's opinion, man.","I didn't misplay — I simply followed the cosmic suggestion.","Well, THAT went pear-shaped.","Well, damn. The universe can be a real jerk, man."],
-      fold:["These cards are harshing the vibe. Out.","My horoscope said avoid clubs. And hearts. And these two specifically.","I fold. But philosophically? Still all-in.","I'm out. My cards and I have agreed to see other people."],
-      allin:["ALL IN! Time is a flat circle and so are these chips, man!","Everything! What could possibly— actually don't finish that thought."],
-      playerWin:["Beautiful hand, man. Genuinely moved.","Nice one. The felt has chosen you tonight.","See, REG? THAT'S how you do it without yelling.","Un-freaking-believable. Teach me, sensei.","Hell of a hand, man. The felt respects you. I respect you. Reg is furious."],
-      idle:["The cards are humming tonight.","I feel a ripple in the universe.","Ohhh… that's a friendly flop.","You ever notice how the river shows you what you need, not what you want?","This reminds me of the time I tried to bet with seashells. Long story.","One time in Butler I drummed 'Immortal' on a shopping cart. A raccoon gave me a standing ovation.","I had a scheme once. Four thousand kazoos. Reg vetoed it. Cowardice.","The fog machine incident. Were any of us truly there, man?","This felt has seen some things, man. Dark things. Sticky things.","Statistically one of us is bluffing right now. My money's on the deck.","I asked the universe for a sign and it dealt me a seven. Cryptic.","You know what this table needs? A kazoo solo. REG! ...Worth a try.","I'm not saying I can see your cards, man. I'm saying your cards have auras.","A poker chip is just a tiny record, man. Play it.","Somewhere out there, a version of me already won this hand.","Deep breaths, everyone. Except Reg. Reg, keep doing whatever that is.","I still dream about the Plasma Cathedral, man. The acoustics. The MENACE."],
-      aboutQuiet:["Here comes the quiet one again. Still waters, man. Deep currents.","You fold like someone who KNOWS things. Respect.","The quiet ones always cash out. It's a universal law, man."],
-      aboutAggro:["Every hand, man? Your chi is very… forward.","You raise more than Reg's blood pressure."],
-      aboutStreak:["The felt has chosen you tonight. I felt it choose.","Three in a row. You're surfing something cosmic, man."],
-      aboutCold:["The universe is testing you. It does that to the worthy.","Rough seas, man. But the tide always turns. Usually."],
-      badbeat:["The river giveth… and the river just mugged me, man.","Cosmic. Truly cosmic. In the worst possible way."],
-      busted:["And so the wheel turns. I'll be at the snack table, spiritually.","My chips have transcended this plane. Farewell, little discs."],
-      rail:["I'm just here for the vibes now, man.","From out here the game looks so… small. And I want back in."]
+      raise:["Raise. The chips whispered to me, man.","I'm in. Giddy up.","Feeding the pot. Circle of life.","Raise. Don't ask about the math. The math and I aren't speaking.","Oh, this is happening. Stay loose, everybody.","Raise. I had a dream about this exact moment. It ended weird.","More chips, more destiny."],
+      win:["And the universe pays its tab.","Beautiful. I'll be spending these irresponsibly.","The trick is to want nothing. And also to have the best cards.","The chips abide, man.","That one goes in the memoirs. Chapter seven: Vindication.","I'd feel bad, but the cosmos insisted."],
+      lose:["A lesson. Expensive, but a lesson.","Far out. The bad kind of far out.","That's just the deck's opinion, man.","I've been robbed by prettier hands.","The universe giveth, and then it does this.","Somewhere a version of me won that hand. Happy for him."],
+      fold:["I'm out. These cards had bad energy.","Fold. My horoscope was extremely specific.","Out. But spiritually? Still in.","Pass, man. Even I have standards. Two of them.","These cards and I want different things.","Fold. The vibes said run."],
+      allin:["All in. Time is a flat circle and so are these chips.","Everything, man. What's money? Don't answer that.","All in. If this goes wrong, tell my drums I loved them."],
+      playerWin:["Nice hand, man. Genuinely moved.","The felt has chosen you tonight.","Beautiful. Teach me nothing. I like being surprised.","See, Reg? No yelling required.","You're surfing something cosmic. Ride it."],
+      idle:["The cards are humming tonight.","I feel a ripple in the universe.","You ever notice the river shows you what you need, not what you want?","This reminds me of when I tried to bet with seashells. Long story. Two arrests.","One time in Butler I drummed 'Immortal' on a shopping cart. Standing ovation from a raccoon.","I had a plan once. Four thousand kazoos. Reg killed it. Cowardice.","The fog machine incident. Were any of us truly there?","I still dream about the Plasma Cathedral, man. The acoustics. The menace.","A poker chip is just a tiny record, man. Play it.","I'm not saying I can see your cards. I'm saying your cards have auras.","Statistically one of us is bluffing right now. My money's on the deck.","I asked the universe for a sign. It dealt me a seven. Cryptic.","You know what this table needs? A kazoo solo. Reg? Worth a try.","Deep breaths, everyone. Except Reg. Reg, keep doing whatever that is."],
+      aboutQuiet:["Here comes the quiet one. Still waters, man. Deep currents.","You fold like someone who knows things. Respect.","The quiet ones always cash out. Universal law."],
+      aboutAggro:["Every hand, man? Your chi is very forward.","You raise more than Reg's blood pressure."],
+      aboutStreak:["The felt has chosen you tonight. I felt it choose.","Three in a row. You're surfing something cosmic."],
+      aboutCold:["The universe is testing you. It does that to the worthy.","Rough seas, man. The tide always turns. Usually."],
+      badbeat:["The river giveth, and the river just mugged me.","Cosmic. Truly cosmic. The worst kind.","I felt that one in my chakras. All of them.","Even my auras are upset right now."],
+      busted:["And so the wheel turns. I'll be at the snack table, spiritually.","My chips have transcended this plane. Farewell, little discs.","This is fine. Money is a construct. A construct I miss already."],
+      rail:["I'm just here for the vibes now.","From out here the game looks so small. And I want back in.","Play the six, man. Trust me. I can see everything from the rail.","I've achieved total poker enlightenment. It's boring."]
     }},
-  { name:'STARLA', color:'#ff9ad5', // vocals: sharp realist, operatic meltdowns
+  { name:'STARLA', color:'#ff9ad5', // vocals: quick, sardonic, permanently surrounded by idiots
     style:{tight:0.50,aggr:0.70,bluff:0.12},
     talk:{
-      raise:["Raise. And I want it noted I did that with GRACE.","I raise. Somebody at this table has to be a professional.","Watch closely, gentlemen. This is called competence."],
-      win:["Thank you, thank you. No flowers, just chips.","And the crowd goes wild. Inwardly. I'm very composed.","Was there ever any doubt? Don't answer that, Sonny.","Eat it, gentlemen. Eat. It.","THAT is how a professional does it, you absolute walnuts."],
-      lose:["I'm fine. I'm FINE. This is me being FINE. ...I need a moment.","Un. Be. LIEVABLE.","Oh, the injustice! The INJUSTICE! ...Okay. I'm done.","I've played sold-out shows with food poisoning. I will survive this. Barely.","Son of a— okay. OKAY. I'm fine. I'm a professional.","Kiss my encore, cards.","Oh that is just f— antastic. FANtastic. I said FANTASTIC."],
-      fold:["Absolutely not.","Fold. Immediately.","I refuse to dignify that play.","Fold. Like an adult. Some of you should try it.","I know when a song's over. Fold.","Nope. Hard nope. Nope with a BOW on it."],
-      allin:["ALL IN. And if this goes badly, we speak of it NEVER.","Everything on the line. So, a normal Tuesday for this band."],
-      playerWin:["Fine. FINE. That was well played and I hate it.","At least SOMEBODY at this table knows what they're doing.","You. Me. Rematch. Immediately."],
-      idle:["You're all exhausting.","I swear, I'm the only one here who understands how poker works.","If he monologues again, I'm muting the universe.","This table is a circus and I'm the unwilling ringmaster.","I'm surrounded by lunatics holding cards.","Reg once argued with a sound guy for two hours. Over ONE decibel.","Sonny asked me if a flush was a plumbing term. Bless him. BLESS him.","I've met roadies with better poker faces. And they were unconscious.","I could be doing vocal warmups right now. Instead: this.","Somebody deal before Cosmo achieves enlightenment.","The Mournful Plumbers called. They want their gloom back. I said no. It's OUR gloom now.","I have exactly ONE nerve left and this table is tap-dancing on it.","Somewhere out there is a band with a normal poker night. I hate them.","Note to self: next band, all mimes."],
-      aboutQuiet:["Watch out — the quiet one is plotting again. I can HEAR it.","You've folded so much you're basically origami. And yet: chips."],
-      aboutAggro:["Oh look, the human raise machine is warming up.","Careful, everyone. Someone woke up BOLD today."],
-      aboutStreak:["Okay, seriously — is the deck signed? WHO signed the deck?","Someone check the shuffler, because THIS is getting insulting."],
-      aboutCold:["Sweetheart, breathe. Even I fold sometimes. …Rarely.","Rough night. Stay in it. That's showbiz."],
-      badbeat:["On the RIVER? The RIVER?! I need to lie down on this floor.","That was robbery with EXTRA steps.","On the river. On the f— you know what? No. I'm classy. It was the F word, though.","I am going to go scream into a monitor wedge. BACK IN FIVE."],
-      busted:["Fine! FINE! I'll be at the bar composing a ballad about betrayal.","This is my farewell tour. Enjoy the table, VULTURES."],
-      rail:["Don't mind me, just narrating your mistakes from over here.","I saw that fold. WEAK."]
+      raise:["Raise. Somebody here has to be a professional.","Raise. And I did it with grace. Write that down.","I raise. Try to keep up.","Oh, I'm raising. This table needs adult supervision.","Raise. Watch closely. This is called competence.","You know what? Raise. I'm feeling generous with my dominance."],
+      win:["Get OUT. I won? Of course I won.","Thank you, thank you. No flowers. Just chips.","And that's how it's done, you walnuts.","I'd act surprised, but we'd both know I was lying.","The crowd goes wild. Inwardly. I'm very composed.","Yes! I mean. As expected."],
+      lose:["You have GOT to be kidding me.","Unbelievable. Truly, deeply unbelievable.","I've played sold-out shows with food poisoning. I'll survive this. Barely.","That's it. I'm switching to tambourine.","Oh that is just f— antastic. FANtastic. I said fantastic.","I need everyone to stop talking for one full minute.","Fine. FINE. Take it. I didn't want a future anyway."],
+      fold:["Absolutely not.","Fold. Immediately. With prejudice.","Nope. Hard nope. Nope with a bow on it.","I refuse to dignify that flop.","I know when a song's over.","Pass. I've dated better hands."],
+      allin:["All in. If this goes badly, we never speak of it.","Everything. So, a normal Tuesday for this band.","All in. Somebody hold my earrings."],
+      playerWin:["Fine. That was well played and I hate it.","At least SOMEBODY here knows what they're doing.","You. Me. Rematch. Immediately.","Okay, that was legitimately good. Ugh."],
+      idle:["You're all exhausting.","I swear I'm the only one here who understands how poker works.","This table is a circus and I'm the unwilling ringmaster.","Reg once argued with a sound guy for two hours. Over one decibel.","Sonny asked me if a flush was a plumbing term. Bless him.","The Mournful Plumbers called. They want their gloom back. I said no. It's ours now.","I have one nerve left and this table is tap-dancing on it.","Somewhere out there is a band with a normal poker night. I hate them.","Note to self: next band, all mimes.","Is it me, or does Cosmo shuffle like he's summoning something?","I could be doing vocal warmups right now. Instead: this.","Maybe the deck is broken. Maybe the deck was always broken."],
+      aboutQuiet:["Watch out. The quiet one is plotting again. I can hear it.","You've folded so much you're basically origami. And yet: chips."],
+      aboutAggro:["Oh look, the human raise machine is warming up.","Careful, everyone. Someone woke up bold today."],
+      aboutStreak:["Okay, seriously. Is the deck signed? WHO signed the deck?","Someone check the shuffler, because this is getting insulting."],
+      aboutCold:["Sweetheart, breathe. Even I fold sometimes. Rarely.","Rough night. Stay in it. That's showbiz."],
+      badbeat:["On the river? The RIVER?","That was robbery with extra steps.","On the f— you know what? No. I'm classy. It was the F word, though.","I'm going to scream into a monitor wedge. Back in five."],
+      busted:["Fine! FINE! I'll be at the bar composing a ballad about betrayal.","This is my farewell tour. Enjoy the table, vultures.","Well. This has been a nightmare. Good night."],
+      rail:["Don't mind me. Just narrating your mistakes from over here.","I saw that fold. Weak.","From out here you can really see everyone playing badly. It's incredible."]
     }},
-  { name:'SONNY', color:'#8fd0ff', // guitar: sweet, earnest, endearingly confused
+  { name:'SONNY', color:'#8fd0ff', // guitar: puppy-hearted, accidentally the moral center
     style:{tight:0.25,aggr:0.15,bluff:0.04},
     talk:{
-      raise:["I raise! ...That's the good one, right?","I like this hand. It feels friendly.","Did I do it right?","Oh! Neat! Raising!","The chips go in the middle and then good things happen. Raise!"],
-      win:["Oh wow! I didn't expect that at all!","I didn't mean to win… it just sort of happened.","I won? I WON! Is everyone seeing this?!","That one was for you, Butler, New Jersey!","Holy crap! HOLY CR— sorry, Reg said no swearing. HOLY HECK!","The cards liked me back! THE CARDS LIKED ME BACK!"],
-      lose:["Aw. Well! There's always the next one. That's the fun part.","I really thought the twos were special.","Losing builds character. I'm building SO much character.","Dang it. Dang it dang it DANG it. …I'm okay now.","It's okay. Money is just… sad confetti."],
-      fold:["I fold! Cheerfully!","These cards need some time to figure out who they want to be.","Out I go! Save my seat, it's my favorite one."],
-      allin:["All in! Reg says never do this! Sorry, Reg!","Every chip! They should stay together. They're a family."],
-      playerWin:["Wow, nice hand! Can you show me how— wait, Reg says that's cheating.","That was wonderful. Genuinely. I took notes.","Yay! I mean— team spirit!","WOOHOO! Wait. I lost. …WOOHOO anyway!"],
-      idle:["Is it my turn?","I'm just happy to be here with you guys.","Wait, so… the flop is the first three? I keep forgetting.","Which one's higher, a straight or a flush? No reason. No reason at all.","I love poker night. Even the losing parts. ESPECIALLY the snacks.","I once tuned up for a whole set to a song we weren't playing. Everyone was very kind about it.","I named my chips. Don't tell Reg. The tall stack is Gerald.","Do the cards get tired? Being shuffled seems exhausting.","I made friendship bracelets for everybody! Reg called his 'evidence.'","If we ALL fold, do the cards win?","Gerald the chip stack says hi. He's nervous tonight.","Remember the Plasma Cathedral? I got lost in there for two days. Great snacks though!"],
-      aboutQuiet:["You're SO patient! I try to be patient. I usually last one hand.","You're quiet like Reg before a rant. But nicer!"],
+      raise:["I raise! That's the good one, right?","Raising! Gosh.","Chips go in the middle, good things happen. Raise!","I like this hand. It feels friendly.","Did I do it right? I did it right!","Raise! Sorry! Not sorry! Both!"],
+      win:["I won? I WON! Is everyone seeing this?","The cards liked me back!","Oh wow. I'm going to frame this pot somehow.","That one was for you, Butler, New Jersey!","I didn't mean to win. It just sort of happened.","Best. Night. Ever. So far!"],
+      lose:["Aw. Well! There's always the next one.","I really thought the twos were special.","Losing builds character. I'm building SO much character.","Dang it. Dang it dang it dang it. I'm okay now.","Money is just sad confetti anyway.","That's fair. I did have nothing."],
+      fold:["I fold! Cheerfully!","These cards need time to figure out who they want to be.","Out I go! Save my seat, it's my favorite.","Folding! Is everyone proud of me? Reg said to fold more.","Bye, cards! Be good for the next person!"],
+      allin:["All in! Reg says never do this! Sorry, Reg!","Every chip! They should stay together. They're a family.","All in! Wow, my heart is SO loud right now."],
+      playerWin:["Nice hand! Can you show me how — wait, Reg says that's cheating.","That was wonderful. I took notes.","WOOHOO! Wait, I lost. Woohoo anyway!","You're so good at this! Are you in a band?"],
+      idle:["Is it my turn?","I'm just happy to be here with you guys.","Wait, the flop is the first three? I keep forgetting.","Which is higher, a straight or a flush? No reason.","I love poker night. Even the losing. ESPECIALLY the snacks.","I named my chips. The tall stack is Gerald.","Do the cards get tired? Being shuffled seems exhausting.","I made friendship bracelets for everybody! Reg called his 'evidence.'","If we all fold, do the cards win?","Remember the Plasma Cathedral? I got lost in there for two days. Great snacks.","One time I tuned up for a whole set to a song we weren't playing. Everyone was very kind.","Gerald the chip stack is nervous tonight. I can tell."],
+      aboutQuiet:["You're SO patient. I try to be patient. I usually last one hand.","You're quiet like Reg before a rant. But nicer!"],
       aboutAggro:["Every time you raise, my heart does a little drum fill!","You play SO brave. I took notes again."],
       aboutStreak:["You're on FIRE! Not literally! That was one time, fog machine!","Three wins! Can I have your autograph? Reg says no. Asking anyway!"],
       aboutCold:["Don't be sad! Some of my favorite hands were losses!","You'll get the next one. I believe in you SO much."],
-      badbeat:["Aw. AW. I really loved those cards.","That's okay! That's… no, actually, ouch."],
+      badbeat:["Aw. AW. I really loved those cards.","That's okay! That's... no, actually, ouch.","My heart just did a weird thing."],
       busted:["I'm out! It was a real honor, everybody. Save my seat for next time!","Aw. Well! More room for snacks."],
-      rail:["Go get 'em! Whoever wins! I support everyone!","This is fun to watch! Painful. But fun!"]
+      rail:["Go get 'em! Whoever wins! I support everyone!","This is fun to watch! Painful. But fun!","I'm the audience now! I always wanted to be the audience!"]
     }},
-  { name:'REG', color:'#ff9d8a', // bass: explosive, rigid, pompous, towering fury
+  { name:'REG', color:'#ff9d8a', // bass: towering, rigid, magnificent fury
     style:{tight:0.55,aggr:0.85,bluff:0.30},
     talk:{
-      raise:["I raise, as any RATIONAL person would. Observe. LEARN.","This is a PRECISION raise. The calculations involved would make you weep.","Raise! And I shall be writing a strongly worded letter about that shuffle.","I'm raising. Cry about it. Melodically."],
-      win:["YES! Vindication! I want this hand NOTARIZED!","As I have stated REPEATEDLY, the system works when I am winning.","Order is restored. You may all resume being wrong about everything else.","Get your damn wallets out. Class is in session.","And THAT, you gorgeous disasters, is called MATHEMATICS."],
-      lose:["NO. Wrong.","This is madness.","I refuse to accept this reality.","Unbelievable!","You cannot — CANNOT — call with that hand! It's an affront to logic!","I'm surrounded by buffoons. ABSOLUTE buffoons.","I am NOT having a meltdown. This is a PRINCIPLED OBJECTION. At volume.","Sonny. SONNY. You called with THAT? I need to sit down. I AM sitting down. I need to sit down MORE.","You absolute MADMAN. You called with GARBAGE and the universe REWARDED you!","BULL. FEATHERS. …I said what I said. Loudly.","Oh, FUCKING marvelous. Truly. The chef's kiss of catastrophe.","I have been robbed in FOUR time zones and this is WORSE."],
-      fold:["Folded. STRATEGICALLY. Not — and I must stress this — out of weakness.","I withdraw with my dignity FULLY intact. Stop smiling, Cosmo."],
-      allin:["ALL IN! This is not gambling, this is MATHEMATICS WITH CONSEQUENCES!","Everything! And when I win, there WILL be a speech!"],
-      playerWin:["Fine. Adequate. A trained pigeon could have— no. No. It was well played. THERE. I SAID IT.","You have bested me THIS ONCE, and I shall think about it constantly.","Hmph. Beginner's luck, sustained over a statistically suspicious number of hands.","You lucky bastard. I say that with FURY. And a grudging sliver of respect."],
-      idle:["If he wins one more hand by accident, I'm flipping the table. I MEAN IT.","The amp settings are SACRED, Cosmo. SACRED.","I once held the low E through all of 'Faith.' Four minutes. Discipline. You wouldn't understand.","A kazoo orchestra. He wanted a KAZOO ORCHESTRA. This is my life.","Is it too much to ask for ONE soundcheck where nothing catches fire?","I once alphabetized our set list MID-SHOW. The crowd RESPECTED it.","Rules exist so that chaos knows where to AIM, apparently.","I have a SYSTEM. The system is FLAWLESS. The cards are the problem.","Statistically, I should be winning. I have the SPREADSHEET.","We are NEVER opening for the Mournful Plumbers again. NEVER. They took our green room hummus."],
-      aboutQuiet:["Ah. The QUIET one stirs. I've been watching you. I have NOTES.","Silence at a poker table is a WEAPON. I respect it. GRUDGINGLY."],
-      aboutAggro:["You raise ENTIRELY too much. It's reckless. It's chaotic. …It's WORKING, which is worse.","Aggression without CALCULATION is just noise. Loud, profitable noise. I HATE it."],
-      aboutStreak:["THREE hands running?! I demand this player be AUDITED!","This streak is statistically OFFENSIVE and I shall be graphing it."],
-      aboutCold:["Even YOU can see the mathematics has abandoned you. Welcome to MY life.","A slump. Textbook. Chapter four. I WROTE chapter four."],
-      badbeat:["ON THE RIVER. I am WRITING THIS DOWN. There will be an INQUIRY.","The mathematics WEPT just now. I heard it.","I have never wanted to flip a table more in my LIFE, and I once played a WEDDING. For FREE."],
-      busted:["ELIMINATED?! Fine. FINE. My exit shall be DIGNIFIED. Watch me. WATCH ME.","I demand a recount of every card dealt since Tuesday."],
-      rail:["I'm not sulking. I'm OBSERVING. Judgmentally.","That raise was incorrect and I shall be filing a report."]
+      raise:["I raise, as any rational person would. Observe. Learn.","This is a precision raise. The calculations would make you weep.","Get your damn wallets out. Class is in session.","Raise. Cry about it. Melodically.","I'm raising, and I shall be composing a letter about that shuffle.","Raise. Someone at this table respects the mathematics."],
+      win:["YES. Vindication. I want this hand notarized.","As I have stated repeatedly, the system works when I am winning.","And THAT, you gorgeous disasters, is called mathematics.","Order is restored. Resume being wrong about everything else.","Chips. Glorious, rightful chips. MY chips."],
+      lose:["This is madness.","I refuse to accept this reality.","You cannot — CANNOT — call with that hand. It's an affront to logic.","I'm surrounded by buffoons. Absolute buffoons.","I am NOT having a meltdown. This is a principled objection. At volume.","Sonny. SONNY. You called with THAT? I need to sit down. I AM sitting down. I need to sit down MORE.","Oh, FUCKING marvelous. Truly. The chef's kiss of catastrophe.","You absolute MADMAN. You called with garbage and the universe REWARDED you.","I have been robbed in four time zones and this is worse.","I demand a review of the shuffle, the felt, and the laws of probability."],
+      fold:["Folded. Strategically. Not — I must stress — from weakness.","I withdraw with my dignity fully intact. Stop smiling, Cosmo.","No. Simply no.","Pass. I've seen this scam before. I have FOLDERS on this scam.","Fold. The math said run, and the math is never wrong. Unlike all of you."],
+      allin:["ALL IN. This is not gambling. This is mathematics with consequences.","Everything. And when I win, there will be a SPEECH.","All in. Someone fetch my victory blazer."],
+      playerWin:["Fine. It was well played. THERE. I said it.","You have bested me once, and I will think about it constantly.","Beginner's luck, sustained over a statistically suspicious number of hands.","You lucky bastard. I say that with fury. And a sliver of respect."],
+      idle:["The amp settings are sacred, Cosmo. SACRED.","I once held the low E through all of 'Faith.' Four minutes. Discipline.","A kazoo orchestra. He wanted a KAZOO ORCHESTRA. This is my life.","Is it too much to ask for one soundcheck where nothing catches fire?","We are never opening for the Mournful Plumbers again. They took our hummus.","I have a system. The system is flawless. The cards are the problem.","Statistically, I should be winning. I have the spreadsheet.","If he wins one more hand by accident, I'm flipping the table. I mean it.","I once alphabetized our set list mid-show. The crowd respected it.","Rules exist so chaos knows where to aim. Apparently at me."],
+      aboutQuiet:["Ah. The quiet one stirs. I've been watching you. I have NOTES.","Silence at a poker table is a weapon. I respect it. Grudgingly."],
+      aboutAggro:["You raise entirely too much. It's reckless. It's chaotic. It's WORKING, which is worse.","Aggression without calculation is just noise. Loud, profitable noise. I hate it."],
+      aboutStreak:["THREE hands running? I demand this player be audited.","This streak is statistically offensive and I shall be graphing it."],
+      aboutCold:["Even you can see the mathematics has abandoned you. Welcome to my life.","A slump. Textbook. Chapter four. I WROTE chapter four."],
+      badbeat:["ON THE RIVER. I am writing this down. There will be an inquiry.","The mathematics wept just now. I heard it.","I have never wanted to flip a table more in my life, and I once played a wedding. For FREE.","That card was printed illegally. Prove me wrong."],
+      busted:["ELIMINATED? Fine. FINE. My exit shall be dignified. Watch me. WATCH ME.","I demand a recount of every card dealt since Tuesday.","Tell my spreadsheet I fought bravely."],
+      rail:["I'm not sulking. I'm observing. Judgmentally.","That raise was incorrect and I shall be filing a report.","From the rail, one sees clearly. You're all terrible.","Fold. FOLD. Why does no one listen to the rail?"]
     }}
 ];
 
 /* ---------------- cross-character reactions (Glen's banter hooks) ---------------- */
 const REACTIONS={
   'REG:lose':[
-    {who:'COSMO', line:"Brother, your aura is… spiky."},
-    {who:'STARLA', line:"Oh good, here we go again."},
-    {who:'SONNY', line:"I'm sorry! I'm trying!"}
+    {who:'COSMO', lines:["Brother, your aura is spiky.","Let it flow through you, man.","And there it is. Right on schedule."]},
+    {who:'STARLA', lines:["Oh good, here we go again.","Somebody get him a paper bag.","Sing it out, Reg. Sing it out."]},
+    {who:'SONNY', lines:["I'm sorry! I'm trying!","Do you want a friendship bracelet? It helps!"]}
   ],
   'REG:raise':[
-    {who:'COSMO', line:"Your energy is… volcanic today."}
+    {who:'COSMO', lines:["Your energy is volcanic today.","Easy, brother. The chips can smell fear."]}
   ],
   'COSMO:idle':[
-    {who:'STARLA', line:"Please don't start with the metaphysics."},
-    {who:'REG', line:"Stop philosophizing and play the game!"},
-    {who:'REG', line:"Your energy is ALWAYS volcanic, Cosmo. Wait— no, that's mine. YOURS is wrong."}
+    {who:'STARLA', lines:["Please don't start with the metaphysics.","No. Whatever it is, no."]},
+    {who:'REG', lines:["Stop philosophizing and PLAY.","Your energy is ALWAYS volcanic, Cosmo. Wait. That's mine. Yours is just WRONG."]}
   ],
   'COSMO:win':[
-    {who:'REG', line:"He doesn't even LOOK at his cards! HOW?!"},
-    {who:'STARLA', line:"He doesn't even LOOK at them. I need to lie down."}
+    {who:'REG', lines:["He doesn't even LOOK at his cards. HOW.","This is an insult to preparation itself."]},
+    {who:'STARLA', lines:["He doesn't even look at them. I need to lie down."]}
   ],
   'SONNY:idle':[
-    {who:'STARLA', line:"Sweetheart… no. Just no."},
-    {who:'STARLA', line:"Sweetheart, you're adorable, but please stop talking during the turn."}
+    {who:'STARLA', lines:["Sweetheart. No.","You're adorable, but please stop talking during the turn."]},
+    {who:'REG', lines:["Sonny, we TALKED about this."]}
   ],
   'SONNY:win':[
-    {who:'REG', line:"NO! NO! NO! This is statistically impossible!"},
-    {who:'REG', line:"If he wins ONE more hand by accident, I'm flipping the table. I MEAN IT."},
-    {who:'STARLA', line:"Sweetheart… HOW?"}
+    {who:'REG', lines:["NO. NO. This is statistically impossible.","If he wins one more by accident I'm flipping the table. I MEAN IT."]},
+    {who:'STARLA', lines:["Sweetheart. HOW."]}
   ],
   'STARLA:lose':[
-    {who:'COSMO', line:"You're glowing with righteous fury."}
+    {who:'COSMO', lines:["You're glowing with righteous fury.","Breathe in the chips, breathe out the rage."]}
   ],
   'STARLA:idle':[
-    {who:'REG', line:"Fine! FINE! I'll be quiet! Temporarily!"},
-    {who:'SONNY', line:"Oh! Sorry! I get excited."},
-    {who:'SONNY', line:"Did I mess up again?"}
+    {who:'REG', lines:["Fine. FINE. I'll be quiet. Temporarily."]},
+    {who:'SONNY', lines:["Did I mess up again?","Oh! Sorry! I get excited."]}
   ],
   'REG:allin':[
-    {who:'COSMO', line:"Everybody stay calm. ESPECIALLY you, brother."},
-    {who:'SONNY', line:"Good luck, Reg! I mean it!"}
+    {who:'COSMO', lines:["Everybody stay calm. Especially you, brother."]},
+    {who:'SONNY', lines:["Good luck, Reg! I mean it!"]}
   ],
   'SONNY:allin':[
-    {who:'REG', line:"SONNY. NO."},
-    {who:'STARLA', line:"Sonny, sweetheart… do you know what all-in MEANS?"}
+    {who:'REG', lines:["SONNY. NO."]},
+    {who:'STARLA', lines:["Sonny, sweetheart. Do you know what all-in means?"]}
   ],
   'STARLA:win':[
-    {who:'REG', line:"Hmph. Competence. From SOMEONE at least."}
+    {who:'REG', lines:["Competence. From someone. At last."]}
   ]
 };
 const SAL={ // blackjack dealer
@@ -964,6 +983,8 @@ $('trophyBtn').onclick=()=>{
 };
 $('dealMeIn').onclick=()=>{
   initAudio();
+  /* wake the speech engine inside a user tap — Android requires this */
+  try{ const w=new SpeechSynthesisUtterance(' '); w.volume=0; speechSynthesis.speak(w); pickVoices(); }catch(e){}
   const t=$('titleScreen'); t.classList.add('gone');
   setTimeout(()=>{ if(t.parentNode) t.parentNode.removeChild(t); },1500);
   const today=new Date().toDateString();
@@ -1099,7 +1120,7 @@ const DECOR={
     '<div style="position:absolute;left:50%;top:50px;width:24px;height:24px;margin-left:-12px;border-radius:50%;background:radial-gradient(circle,#ffeebc,#c9a24d);box-shadow:0 0 34px 14px rgba(255,220,140,.3)"></div>'+
     '<div style="position:absolute;left:50%;top:40px;width:340px;height:240px;transform:translateX(-50%);background:radial-gradient(ellipse at 50% 12%,rgba(255,220,150,.15),rgba(0,0,0,0) 62%);pointer-events:none"></div>'+
     '<a href="https://youtube.com/playlist?list=PLd1uZNELj91lcc_vY2wqcmCd9OqVxs0-d&si=F27_wgabQNySxqzK" target="_blank" rel="noopener" title="Watch X-Ray Star on YouTube" style="pointer-events:auto;text-decoration:none">'+
-    '<svg style="position:absolute;left:6%;top:36px;transform:rotate(-5deg);box-shadow:0 7px 14px rgba(0,0,0,.65)" width="64" height="84" viewBox="0 0 64 84">'+
+    '<svg style="position:absolute;left:6%;top:36px;transform:rotate(-5deg);box-shadow:0 7px 14px rgba(0,0,0,.65)" width="100" height="132" viewBox="0 0 64 84">'+
       '<rect width="64" height="84" fill="#8a2c12"/>'+
       '<path d="M0 74 L14 66 L26 72 L40 64 L54 70 L64 66 L64 84 L0 84 Z" fill="#4a1408"/>'+
       '<path d="M32 46 m-15 0 a15 15 0 1 1 30 0 a11 11 0 1 1 -22 0 a7 7 0 1 1 14 0" stroke="#2c9a6e" fill="none" stroke-width="3.2" opacity=".95"/>'+
@@ -1108,12 +1129,12 @@ const DECOR={
       '<path d="M38 62 l13 -4 l5 2 l-4 4 l-13 2 Z" fill="#d8c26a"/><path d="M48 57 l3 -3 l1 4 Z" fill="#d8c26a"/>'+
       '<text x="32" y="13" text-anchor="middle" font-family="Alfa Slab One,serif" font-size="10" fill="#ffd268">X-RAY</text>'+
       '<text x="32" y="24" text-anchor="middle" font-family="Alfa Slab One,serif" font-size="10" fill="#ffd268">STAR</text></svg>'+
-    '<div style="position:absolute;left:6%;top:126px;transform:rotate(-5deg);font-size:9px;color:#ffd268;letter-spacing:.06em;text-shadow:0 1px 3px #000">▶ tap for videos</div></a>'+
+    '<div style="position:absolute;left:6%;top:176px;transform:rotate(-5deg);font-size:11px;color:#ffd268;letter-spacing:.06em;text-shadow:0 1px 3px #000">▶ tap for videos</div></a>'+
     '<a href="https://open.spotify.com/artist/7kuG094aXgRmkgIOH9Tpdi" target="_blank" rel="noopener" title="X-Ray Star on Spotify" style="pointer-events:auto;text-decoration:none">'+
-    '<div style="position:absolute;right:5%;top:52px;width:58px;height:74px;background:#2a1420;border:3px solid #55283a;border-radius:3px;transform:rotate(4deg);box-shadow:0 7px 14px rgba(0,0,0,.65);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px">'+
-      '<div style="font-family:\'Alfa Slab One\',serif;font-size:8px;color:#ff9ad5;text-align:center;line-height:1.35">POKER<br>NIGHT</div>'+
-      '<div style="font-size:14px">♠</div>'+
-      '<div style="font-size:6.5px;color:#c9a24d">BYOB</div></div></a>'+
+    '<div style="position:absolute;right:5%;top:46px;width:88px;height:112px;background:#2a1420;border:3px solid #55283a;border-radius:3px;transform:rotate(4deg);box-shadow:0 7px 14px rgba(0,0,0,.65);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px">'+
+      '<div style="font-family:\'Alfa Slab One\',serif;font-size:13px;color:#ff9ad5;text-align:center;line-height:1.35">POKER<br>NIGHT</div>'+
+      '<div style="font-size:22px">♠</div>'+
+      '<div style="font-size:10px;color:#c9a24d;letter-spacing:.08em">BYOB</div></div></a>'+
     '<div style="position:absolute;right:22%;bottom:6px;width:66px;height:46px;background:#161616;border:2px solid #3a3a3a;border-radius:6px"><div style="margin:6px auto;width:46px;height:22px;background:repeating-linear-gradient(90deg,#222 0 4px,#333 4px 8px);border-radius:3px"></div><div style="position:absolute;right:5px;top:4px;width:5px;height:5px;border-radius:50%;background:#ff8f6b;box-shadow:0 0 6px #ff8f6b"></div></div>',
   lounge:'<div style="position:absolute;inset:0;opacity:.75;background:repeating-linear-gradient(90deg,#251140 0 30px,#372058 30px 60px)"></div>'+
     '<div style="position:absolute;inset:0;background:radial-gradient(ellipse at 50% 100%,rgba(255,90,190,.12),rgba(0,0,0,0) 55%)"></div>'+
@@ -1183,6 +1204,7 @@ function pickVoices(){
   }catch(e){}
 }
 if('speechSynthesis' in window){ pickVoices(); speechSynthesis.onvoiceschanged=pickVoices; }
+let curUtter=null;   /* keep a live reference — Android garbage-collects pending speech otherwise */
 function speak(name,text){
   if(!voicesOn || !('speechSynthesis' in window)) return;
   try{
@@ -1191,7 +1213,10 @@ function speak(name,text){
     const prof=VPROF[name]||{p:1,r:1};
     u.pitch=prof.p; u.rate=prof.r; u.volume=0.95;
     if(VOICEMAP[name]) u.voice=VOICEMAP[name];
-    speechSynthesis.speak(u);
+    curUtter=u;
+    /* Android Chrome: cancel-then-speak in the same tick silently fails —
+       wait a beat and nudge the engine awake first */
+    setTimeout(()=>{ try{ speechSynthesis.resume(); speechSynthesis.speak(u); }catch(e){} }, 80);
   }catch(e){}
 }
 $('voiceBtn').onclick=function(){
@@ -1240,11 +1265,12 @@ function say(i,cat){
   speakLine(i, drawLine(p.name+':'+cat, lines));
   /* someone at the table may react to what was just said */
   const opts=REACTIONS[p.name+':'+cat];
-  if(opts && Math.random()<0.55){
+  if(opts && Math.random()<0.45){
     const pick=opts[Math.floor(Math.random()*opts.length)];
     const j=P.findIndex(q=>q.name===pick.who);
     if(j>0 && P[j].playing){
-      setTimeout(()=>speakLine(j,pick.line), 2400);
+      const line=drawLine('R:'+p.name+':'+cat+':'+pick.who, pick.lines);
+      setTimeout(()=>speakLine(j,line), 2400);
     }
   }
   return true;
@@ -1543,7 +1569,7 @@ async function street(myS, firstI, startBet, bb){
       act=aiAct(i,p,currentBet,minRaise,bb); }
     if(act.type==='fold'){
       p.inHand=false; p.acted=true;
-      if(!p.human) spoke=maybeSay(i,'fold',0.5); 
+      if(!p.human) spoke=maybeSay(i,'fold',0.4); 
       setMsg(p.name+' folds.');
       if(inHand().length===1){ highlightTurn(-1); renderAll(false); return 'done'; }
     }else if(act.type==='call'){
@@ -1559,7 +1585,7 @@ async function street(myS, firstI, startBet, bb){
       minRaise=Math.max(minRaise, to-currentBet);
       currentBet=to; lastRaiser=i;
       if(p.chips===0){ p.allin=true; if(!p.human) spoke=maybeSay(i,'allin',0.85); }
-      else if(!p.human) spoke=maybeSay(i,'raise',0.45);
+      else if(!p.human) spoke=maybeSay(i,'raise',0.35);
       P.forEach(q=>{ if(q!==p) q.acted=false; });
       p.acted=true; sfx('chip');
       setMsg(p.name+' raises to '+money(to)+'.');
@@ -1644,7 +1670,7 @@ function aiStrength(p){
 }
 const DIFFS=[
   {noise:0.22, aggrM:0.5,  bluffM:0.4,  edge:-0.08},  /* friendly: sloppy, pays you off */
-  {noise:0.13, aggrM:0.92, bluffM:0.95, edge:-0.01},  /* house rules: a fair fight */
+  {noise:0.15, aggrM:0.85, bluffM:0.9,  edge:-0.03},  /* house rules: a fair fight */
   {noise:0.05, aggrM:1.25, bluffM:1.3,  edge:0.05}    /* serious: sharp and punishing */
 ];
 function aiAct(i,p,currentBet,minRaise,bb){
@@ -1771,6 +1797,13 @@ function startBJ(){
   setFelt({felt:['#123a2b','#08130d']});
   curSet='wild';
   $('venueName').textContent='The Wild Card Room';
+  $('bjDecor').innerHTML=
+    '<div style="position:absolute;left:0;right:0;top:0;height:9px;background:linear-gradient(#4a4a4a,#222);border-bottom:2px solid #111"></div>'+
+    '<div style="position:absolute;left:0;right:0;top:14px;height:16px;background:radial-gradient(circle at 10px 4px,#a0ffd9 2.5px,rgba(0,0,0,0) 3.5px);background-size:34px 16px;background-repeat:repeat-x;opacity:.8"></div>'+
+    '<div class="suit" style="left:4%;top:18%">♠</div>'+
+    '<div class="suit" style="right:5%;top:12%;transform:rotate(12deg)">♥</div>'+
+    '<div class="suit" style="left:10%;bottom:6%;transform:rotate(8deg)">♣</div>'+
+    '<div class="suit" style="right:9%;bottom:10%;transform:rotate(-9deg)">♦</div>';
   $('salFace').innerHTML='<svg viewBox="0 0 100 116">'+
     '<ellipse cx="50" cy="112" rx="28" ry="4.5" fill="rgba(0,0,0,.45)"/>'+
     '<path d="M16 116 Q16 90 50 88 Q84 90 84 116 Z" fill="#1c1c26"/>'+
@@ -1890,6 +1923,7 @@ async function bjStand(force){
 }
 function endBJHand(){
   bjLock=Date.now()+500;
+  if(Math.random()<0.3) setTimeout(()=>salSay('idle'),1400);
   updateHdr(); save();
   const A=$('bjActions'); A.innerHTML='';
   const b=document.createElement('button');
