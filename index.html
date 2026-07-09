@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <title>X-Ray Star: Poker Night</title>
 <meta property="og:title" content="X-Ray Star: Poker Night">
 <meta property="og:description" content="Texas Hold 'em with the band. Play your way from the basement to Vegas — a free game from X-Ray Star.">
@@ -19,13 +19,14 @@
   }
   *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;user-select:none;-webkit-user-select:none}
   html,body{width:100%;height:100%;overflow:hidden}
+  @supports (height:100dvh){ body{height:100dvh} }
   body{
     font-family:'Quicksand',system-ui,sans-serif;color:var(--ink);
     background:radial-gradient(ellipse at 50% 30%, var(--felt1) 0%, var(--felt2) 75%);
     font-size:17px;
     display:flex;flex-direction:column;
   }
-  button{font-family:'Quicksand',sans-serif;font-weight:700;cursor:pointer;border:none;
+  button{font-family:'Quicksand',sans-serif;font-weight:700;cursor:pointer;border:none;touch-action:manipulation;
     transition:transform .07s ease, filter .07s ease}
   button:active{transform:scale(.95);filter:brightness(1.25)}
   .venue:active{transform:scale(.98);filter:brightness(1.2)}
@@ -176,7 +177,7 @@
   }
   #charRow{position:relative;z-index:2;display:flex;justify-content:space-around;align-items:flex-end;padding:56px 4px 0;max-width:760px;margin:0 auto;width:100%}
   .charSpot{width:24%;max-width:150px;text-align:center;position:relative}
-  .charSVG{width:clamp(74px,19vw,132px);height:auto;display:block;margin:0 auto -4px;
+  .charSVG{width:clamp(74px,19vw,132px);height:auto;aspect-ratio:100/116;display:block;margin:0 auto -4px;
     animation:bob 3.6s ease-in-out infinite alternate;filter:drop-shadow(0 4px 8px rgba(0,0,0,.5))}
   .charSpot:nth-child(2) .charSVG{animation-delay:.9s}
   .charSpot:nth-child(3) .charSVG{animation-delay:1.7s}
@@ -185,7 +186,7 @@
   @media (prefers-reduced-motion: reduce){.charSVG{animation:none}}
   .charSpot.turn .charSVG{filter:drop-shadow(0 0 14px rgba(255,210,104,.9))}
   .charSpot.folded{opacity:.4;filter:grayscale(.7)}
-  .plate{background:rgba(0,0,0,.45);border-radius:10px;padding:4px 4px 5px;backdrop-filter:blur(2px)}
+  .plate{background:rgba(0,0,0,.45);border-radius:10px;padding:4px 4px 5px;-webkit-backdrop-filter:blur(2px);backdrop-filter:blur(2px)}
   .dbtn{display:inline-block;background:var(--gold);color:#161028;border-radius:50%;
     width:16px;height:16px;font-size:11px;line-height:16px;margin-left:4px;font-weight:700;vertical-align:1px}
   #room::after{content:'';position:absolute;inset:0;pointer-events:none;z-index:4;
@@ -266,7 +267,7 @@
   #myInfo b{color:var(--accent)}
   #myInfo .yb{color:var(--gold)}
 
-  #actions{display:flex;gap:8px;justify-content:center;padding:0 12px 14px;flex-wrap:wrap;width:100%;max-width:760px;margin:0 auto}
+  #actions{display:flex;gap:8px;justify-content:center;padding:0 12px calc(14px + env(safe-area-inset-bottom));flex-wrap:wrap;width:100%;max-width:760px;margin:0 auto}
   .act{
     flex:1 1 0;min-width:92px;max-width:170px;padding:15px 6px;border-radius:13px;
     font-size:16.5px;letter-spacing:.03em;color:#161028;
@@ -286,7 +287,7 @@
   #bjMid{flex:1 1 auto;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px}
   #bjMsg{font-size:16px;text-align:center;min-height:44px;padding:0 16px;line-height:1.45}
   #bjBubbleWrap{position:relative;height:0;width:100%}
-  #bjActions{display:flex;gap:18px;justify-content:center;padding:0 12px 16px;flex-wrap:wrap}
+  #bjActions{display:flex;gap:18px;justify-content:center;padding:0 12px calc(16px + env(safe-area-inset-bottom));flex-wrap:wrap}
   #bjVal,#bjDealerVal{font-size:15px;color:var(--gold);font-weight:700;min-height:20px;margin-top:4px}
 
   /* ============ overlay ============ */
@@ -391,7 +392,7 @@
   </div>
 
   <div class="foot">
-    v1.1 fan test · play-money chips only — no real gambling, just bragging rights<br>
+    v1.2 fan test · play-money chips only — no real gambling, just bragging rights<br>
     music &amp; mischief by <a href="https://x-raystarband.net/" target="_blank" rel="noopener">X-Ray Star</a> ·
     <a href="https://youtube.com/playlist?list=PLd1uZNELj91lcc_vY2wqcmCd9OqVxs0-d&si=F27_wgabQNySxqzK" target="_blank" rel="noopener">YouTube</a> ·
     <a href="https://open.spotify.com/artist/7kuG094aXgRmkgIOH9Tpdi" target="_blank" rel="noopener">Spotify</a> ·
@@ -488,7 +489,9 @@ function initAudio(){
   if(AC) return;
   try{
     AC=new (window.AudioContext||window.webkitAudioContext)();
+    if(AC.state==='suspended') AC.resume();
     master=AC.createGain(); master.gain.value=0.7; master.connect(AC.destination);
+    document.addEventListener('pointerdown',()=>{ try{ if(AC&&AC.state==='suspended') AC.resume(); }catch(e){} },{passive:true});
     let ci=0;
     function pad(){
       if(muted||!AC) return;
@@ -949,6 +952,12 @@ $('resetBtn').onclick=()=>{
 };
 /* coming back to the tab: redraw the table and re-show whose move it is */
 document.addEventListener('visibilitychange',()=>{
+  try{
+    if(AC && master){
+      if(document.hidden) master.gain.value=0;
+      else if(!muted) master.gain.setValueAtTime(0.7, AC.currentTime);
+    }
+  }catch(e){}
   if(!document.hidden && P.length && document.getElementById('poker').classList.contains('on')){
     renderAll(false);
     if(awaitingHuman) setMsg(lastPrompt);
@@ -1020,7 +1029,7 @@ function charSVG(name){
   const LAP=['#6f747d','#39424f','#0c0c12'][tier];
   const fx=tier===2;
   const bow='<path d="M43 92 l7 3 l7 -3 l0 7 l-7 -3 l-7 3 Z" fill="#ffd268"/>';
-  if(name==='COSMO') return '<svg class="charSVG" viewBox="0 0 100 116">'+
+  if(name==='COSMO') return '<svg class="charSVG" width="100" height="116" viewBox="0 0 100 116">'+
     '<ellipse cx="50" cy="112" rx="28" ry="4.5" fill="rgba(0,0,0,.45)"/>'+
     '<path d="M16 116 Q16 90 50 90 Q84 90 84 116 Z" fill="'+OUT+'"/>'+
     '<rect x="44" y="74" width="12" height="18" fill="#d4a276"/>'+
@@ -1035,7 +1044,7 @@ function charSVG(name){
     '<g class="mBase"><path d="M40 74 Q50 81 60 74" stroke="#7a4a2a" stroke-width="3" fill="none" stroke-linecap="round"/></g>'+
     '<g class="mHappy"><path d="M38 72 Q50 86 62 72" stroke="#7a4a2a" stroke-width="3.5" fill="none" stroke-linecap="round"/></g>'+
     '<g class="mSad"><path d="M40 79 Q50 71 60 79" stroke="#7a4a2a" stroke-width="3" fill="none" stroke-linecap="round"/></g>'+(fx?bow:'')+'</svg>';
-  if(name==='STARLA') return '<svg class="charSVG" viewBox="0 0 100 116">'+
+  if(name==='STARLA') return '<svg class="charSVG" width="100" height="116" viewBox="0 0 100 116">'+
     '<ellipse cx="50" cy="112" rx="28" ry="4.5" fill="rgba(0,0,0,.45)"/>'+
     '<path d="M25 34 Q25 14 50 14 Q75 14 75 34 L77 96 Q68 105 59 96 L59 50 Q59 38 50 38 Q41 38 41 50 L41 96 Q32 105 23 96 Z" fill="#2e2016"/>'+
     '<path d="M16 116 Q16 92 50 88 Q84 92 84 116 Z" fill="'+OUT+'"/>'+
@@ -1058,7 +1067,7 @@ function charSVG(name){
     '<circle cx="50" cy="94" r="2" fill="#c9c2d8"/>'+
     '<rect x="34" y="50" width="32" height="9" rx="4.5" fill="#f0c9a6" opacity="0">'+
     '<animate attributeName="opacity" values="0;0;1;0;0" keyTimes="0;0.9;0.93;0.96;1" dur="5.6s" repeatCount="indefinite"/></rect>'+(fx?'<circle cx="42" cy="100" r="1.6" fill="#ffd268"/><circle cx="56" cy="106" r="1.6" fill="#ffd268"/><circle cx="64" cy="98" r="1.6" fill="#ffd268"/>':'')+'</svg>';
-  if(name==='SONNY') return '<svg class="charSVG" viewBox="0 0 100 116">'+
+  if(name==='SONNY') return '<svg class="charSVG" width="100" height="116" viewBox="0 0 100 116">'+
     '<ellipse cx="50" cy="112" rx="28" ry="4.5" fill="rgba(0,0,0,.45)"/>'+
     '<path d="M16 116 Q16 90 50 88 Q84 90 84 116 Z" fill="'+OUT+'"/>'+
     '<path d="M42 90 L50 116 L58 90 L50 94 Z" fill="#e8e8ec"/>'+
@@ -1080,7 +1089,7 @@ function charSVG(name){
     '<rect x="33" y="49" width="34" height="10" rx="5" fill="#e9bd94" opacity="0">'+
     '<animate attributeName="opacity" values="0;0;1;0;0" keyTimes="0;0.9;0.93;0.96;1" dur="4.7s" repeatCount="indefinite"/></rect>'+(fx?bow:'')+'</svg>';
   /* REG */
-  return '<svg class="charSVG" viewBox="0 0 100 116">'+
+  return '<svg class="charSVG" width="100" height="116" viewBox="0 0 100 116">'+
     '<ellipse cx="50" cy="112" rx="28" ry="4.5" fill="rgba(0,0,0,.45)"/>'+
     '<path d="M16 116 Q16 90 50 90 Q84 90 84 116 Z" fill="'+OUT+'"/>'+
     '<path d="M40 92 L50 104 L60 92 Z" fill="#ffd268"/>'+
@@ -1786,7 +1795,7 @@ function startBJ(){
     '<div class="suit" style="right:5%;top:12%;transform:rotate(12deg)">♥</div>'+
     '<div class="suit" style="left:10%;bottom:6%;transform:rotate(8deg)">♣</div>'+
     '<div class="suit" style="right:9%;bottom:10%;transform:rotate(-9deg)">♦</div>';
-  $('salFace').innerHTML='<svg viewBox="0 0 100 116">'+
+  $('salFace').innerHTML='<svg width="100" height="116" viewBox="0 0 100 116">'+
     '<ellipse cx="50" cy="112" rx="28" ry="4.5" fill="rgba(0,0,0,.45)"/>'+
     '<path d="M16 116 Q16 90 50 88 Q84 90 84 116 Z" fill="#1c1c26"/>'+
     '<path d="M42 90 L50 112 L58 90 L50 94 Z" fill="#e8e8ec"/>'+
